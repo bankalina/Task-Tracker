@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Django
+db.sqlite3
+
+# Environment
+.env
+venv/
+env/
+
+# IDE / system
+.vscode/
+.idea/
+*.log
+
+# Node (jeśli masz folder front-end – React)
+node_modules/
+build/
+dist/
