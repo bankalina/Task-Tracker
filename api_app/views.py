@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .utils import sign_token
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 
 USERS = {
     1: {"id": 1, "name": "Jan Kowalski", "email": "jan@example.com"},
@@ -38,3 +40,14 @@ def get_user_by_id(request, id):
             status=status.HTTP_404_NOT_FOUND
         )
     return Response(USERS[id], status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    user = request.user
+
+    return Response({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+    }, status=status.HTTP_200_OK)
