@@ -47,3 +47,12 @@ The application allows users to:
 ### Database ERD
 
 ![Database ERD](docs/dbERD.drawio.svg)
+
+## Local setup instructions for backend and frontend
+
+python -m venv .venv
+source .venv/bin/activate  # or Windows
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+
