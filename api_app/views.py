@@ -5,8 +5,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status, generics
 from django.contrib.auth import authenticate
 from .utils import sign_token
-from .models import Task, UserTask, UserTaskRole
-from .serializers import TaskSerializer
+from .models import Task, UserTask, UserTaskRole, Subtask
+from .serializers import TaskSerializer, SubtaskSerializer
 from .permissions import TaskRolePermission
 
 USERS = {
@@ -60,20 +60,31 @@ def profile(request):
     }, status=status.HTTP_200_OK)
 
 
-class TaskListCreateView(generics.ListCreateAPIView):
-    serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+class TaskSubtaskListCreateView(generics.ListCreateAPIView):
+    serializer_class = SubtaskSerializer
+    permission_classes = [IsAuthenticated, TaskRolePermission]
 
     def get_queryset(self):
-        return Task.objects.filter(memberships__user=self.request.user).order_by("-created_at")
+        task_id = self.kwargs["task_id"]
+        # tylko subtaski dla tasków, gdzie user jest członkiem
+        return Subtask.objects.filter(
+            task_id=task_id,
+            task__memberships__user=self.request.user,
+        ).order_by("-created_at")
 
     def perform_create(self, serializer):
-        task = serializer.save(assigned_by=self.request.user)
-        UserTask.objects.get_or_create(
-            task=task,
-            user=self.request.user,
-            defaults={"role": UserTaskRole.OWNER},
-        )
+        task_id = self.kwargs["task_id"]
+        # Allow create only if the user has update permissions (Assigned/Owner).
+        # TaskRolePermission will currently return False for POST because POST is not an object-level check on Task.
+        # Therefore, we perform a manual role check here.
+        membership = UserTask.objects.filter(task_id=task_id, user=self.request.user).first()
+        if membership is None:
+            raise NotFound()
+        if membership.role not in (UserTaskRole.OWNER, UserTaskRole.ASSIGNED):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You don't have permission to add subtasks for this task.")
+
+        serializer.save(task_id=task_id)
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -86,3 +97,27 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         obj = super().get_object()
         return obj
+    
+
+class SubtaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SubtaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # access only if user a member of a task/subtask
+        return Subtask.objects.filter(task__memberships__user=self.request.user)
+
+    def perform_update(self, serializer):
+        subtask = self.get_object()
+        membership = UserTask.objects.filter(task=subtask.task, user=self.request.user).first()
+        if membership.role not in (UserTaskRole.OWNER, UserTaskRole.ASSIGNED):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You don't have permission to edit this subtask.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        membership = UserTask.objects.filter(task=instance.task, user=self.request.user).first()
+        if membership.role != UserTaskRole.OWNER:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only the owner can delete subtasks.")
+        instance.delete()
