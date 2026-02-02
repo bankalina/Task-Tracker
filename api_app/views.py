@@ -5,6 +5,9 @@ from django.contrib.auth import authenticate
 from .utils import sign_token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from rest_framework import generics
+from .models import Task
+from .serializers import TaskSerializer
 
 USERS = {
     1: {"id": 1, "name": "Jan Kowalski", "email": "jan@example.com"},
@@ -51,3 +54,13 @@ def profile(request):
         "username": user.username,
         "email": user.email,
     }, status=status.HTTP_200_OK)
+
+class TaskListCreateView(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Task.objects.all().order_by("-created_at")
+
+    def perform_create(self, serializer):
+        serializer.save(assigned_by=self.request.user)

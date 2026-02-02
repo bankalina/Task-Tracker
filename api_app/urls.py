@@ -1,10 +1,10 @@
 from django.urls import path
-from . import views
-from .views import login, profile
+from .views import login, profile, get_users, get_user_by_id, TaskListCreateView
 
 urlpatterns = [
-    path('users/', views.get_users),
-    path('users/<int:id>/', views.get_user_by_id),
+    path('users/', get_users),
+    path('users/<int:id>/', get_user_by_id),
     path("login/", login),
     path("profile/", profile),
+    path("tasks/", TaskListCreateView.as_view(), name="tasks_list_create"),
 ]
