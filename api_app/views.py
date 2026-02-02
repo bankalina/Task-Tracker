@@ -3,16 +3,26 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from rest_framework import status, generics
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from .utils import sign_token
 from .models import Task, UserTask, UserTaskRole, Subtask
-from .serializers import TaskSerializer, SubtaskSerializer
+from .serializers import TaskSerializer, SubtaskSerializer, UserSerializer
 from .permissions import TaskRolePermission
 
-USERS = {
-    1: {"id": 1, "name": "Jan Kowalski", "email": "jan@example.com"},
-    2: {"id": 2, "name": "Anna Nowak", "email": "anna@example.com"},
-}
+
+User = get_user_model()
+
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserDetailView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
 @api_view(['POST'])
@@ -31,21 +41,6 @@ def login(request):
     tokens = sign_token(user)
 
     return Response(tokens, status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-def get_users(request):
-    return Response(list(USERS.values()), status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-def get_user_by_id(request, id):
-    if id not in USERS:
-        return Response(
-            {"error": "User not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    return Response(USERS[id], status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

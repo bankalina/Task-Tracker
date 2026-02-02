@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from .models import Task, Subtask
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -16,3 +19,10 @@ class SubtaskSerializer(serializers.ModelSerializer):
         model = Subtask
         fields = "__all__"
         read_only_fields = ("created_at", "updated_at", "task")
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email"]
+        

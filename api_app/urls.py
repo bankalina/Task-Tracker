@@ -2,8 +2,8 @@ from django.urls import path
 from .views import (
     login,
     profile,
-    get_users,
-    get_user_by_id,
+    UserListView,
+    UserDetailView,
     TaskListCreateView,
     TaskDetailView,
     TaskSubtaskListCreateView,
@@ -12,8 +12,8 @@ from .views import (
 
 
 urlpatterns = [
-    path('users/', get_users),
-    path('users/<int:id>/', get_user_by_id),
+    path('users/', UserListView.as_view(), name="users_list"),
+    path('users/<int:pk>/', UserDetailView.as_view(), name="users_detail"),
     path("login/", login),
     path("profile/", profile),
     path("tasks/", TaskListCreateView.as_view(), name="tasks_list_create"),
