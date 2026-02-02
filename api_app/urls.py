@@ -1,5 +1,15 @@
 from django.urls import path
-from .views import login, profile, get_users, get_user_by_id, TaskListCreateView, TaskDetailView, TaskSubtaskListCreateView, SubtaskDetailView
+from .views import (
+    login,
+    profile,
+    get_users,
+    get_user_by_id,
+    TaskListCreateView,
+    TaskDetailView,
+    TaskSubtaskListCreateView,
+    SubtaskDetailView,
+)
+
 
 urlpatterns = [
     path('users/', get_users),

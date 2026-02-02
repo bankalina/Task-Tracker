@@ -60,13 +60,31 @@ def profile(request):
     }, status=status.HTTP_200_OK)
 
 
+class TaskListCreateView(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Task.objects.filter(memberships__user=self.request.user).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        task = serializer.save(assigned_by=self.request.user)
+
+        # Ensure the creator becomes the Owner (legacy trigger equivalent)
+        UserTask.objects.get_or_create(
+            task=task,
+            user=self.request.user,
+            defaults={"role": UserTaskRole.OWNER},
+        )
+
+
 class TaskSubtaskListCreateView(generics.ListCreateAPIView):
     serializer_class = SubtaskSerializer
     permission_classes = [IsAuthenticated, TaskRolePermission]
 
     def get_queryset(self):
         task_id = self.kwargs["task_id"]
-        # tylko subtaski dla tasków, gdzie user jest członkiem
+        # subtasks only for tasks where user is a member
         return Subtask.objects.filter(
             task_id=task_id,
             task__memberships__user=self.request.user,
