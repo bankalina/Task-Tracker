@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework import status, generics
 from django.contrib.auth import authenticate
 from .utils import sign_token
-from .models import Task, UserTask
+from .models import Task, UserTask, UserTaskRole
 from .serializers import TaskSerializer
 from .permissions import TaskRolePermission
 
@@ -68,7 +68,12 @@ class TaskListCreateView(generics.ListCreateAPIView):
         return Task.objects.filter(memberships__user=self.request.user).order_by("-created_at")
 
     def perform_create(self, serializer):
-        serializer.save(assigned_by=self.request.user)
+        task = serializer.save(assigned_by=self.request.user)
+        UserTask.objects.get_or_create(
+            task=task,
+            user=self.request.user,
+            defaults={"role": UserTaskRole.OWNER},
+        )
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
