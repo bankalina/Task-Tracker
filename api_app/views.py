@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from .utils import sign_token
 from .models import Task, UserTask
 from .serializers import TaskSerializer
+from .permissions import TaskRolePermission
 
 USERS = {
     1: {"id": 1, "name": "Jan Kowalski", "email": "jan@example.com"},
@@ -64,7 +65,7 @@ class TaskListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Task.objects.all().order_by("-created_at")
+        return Task.objects.filter(memberships__user=self.request.user).order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(assigned_by=self.request.user)
@@ -72,10 +73,10 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, TaskRolePermission]
 
     def get_queryset(self):
-        return Task.objects.all()
+        return Task.objects.filter(memberships__user=self.request.user)
 
     def get_object(self):
         obj = super().get_object()
