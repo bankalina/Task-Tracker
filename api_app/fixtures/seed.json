@@ -1,0 +1,787 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$6fUsNWuCm2JHHm6V8aWpb5$tZjj5MFOQJbT7d2Gj10nou/Au0a1Q00NPnqA+BJfzNI=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "kalina",
+    "first_name": "",
+    "last_name": "",
+    "email": "kalina.baniak@student.pk.edu.pl",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-11-24T21:53:11.171Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$AQdwU3q7EzRunqyJFo7UiB$T9bGkQAtlwSPwXDWzrfjtKDLisuklnvWVamN3tnV5Kw=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user1",
+    "first_name": "",
+    "last_name": "",
+    "email": "user1@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:47.941Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$mbMxHJOb61vQtX1n9aPpgY$3oGWztaI2rsJMobzrMYMImJtSW7mrhZR0QLrHSynsRk=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user2",
+    "first_name": "",
+    "last_name": "",
+    "email": "user2@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:48.417Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$0EwZApfmkJoK9iggHQ3WUG$jtembjfwLsV5b4rg9Zx0Uv6OOKqp3zV2gGAVifFrytI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user3",
+    "first_name": "",
+    "last_name": "",
+    "email": "user3@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:48.897Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$5BvlyXB4X3HIuaeKyA3sMs$YaOvFqBIm0YwHs4E05GFW/3DrhTAP20EmrzTlL9Im8c=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user4",
+    "first_name": "",
+    "last_name": "",
+    "email": "user4@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:49.359Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$pxwyeCgOMboBd97mNJgAec$XqY0hjxhRbHIQCp75ed04y2eOQ6HUyycJEpMfxsxWGU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user5",
+    "first_name": "",
+    "last_name": "",
+    "email": "user5@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:49.803Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$YIXKS9Lb6c5NtsN6J2OQ7P$k8odaZp1A0MykbabHcTD0Z1Uy9VspSe6eJk3Z5mHCdo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user6",
+    "first_name": "",
+    "last_name": "",
+    "email": "user6@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:50.245Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 8,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$hryyBUHsOgADP8JUTEnyom$8PAQC3OgM+uTEuyTv4kyuLxMmV813StctDU41mBVapA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user7",
+    "first_name": "",
+    "last_name": "",
+    "email": "user7@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:50.689Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 9,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$pln7dQ5CeR8yIjPJDgCDv2$uFm0n03+BDNYMMGVMls1Ml0jXgrQa9rY4XFgxIfLL5E=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user8",
+    "first_name": "",
+    "last_name": "",
+    "email": "user8@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:51.128Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 10,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$qZWcBD7zVM3WkTBrRoiQIa$Q1SKE/f5Xmw/JWp2wtw0TqO8xvd7s8udmX0yAp5ZVVA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user9",
+    "first_name": "",
+    "last_name": "",
+    "email": "user9@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:51.600Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 11,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$FXxCjmtPjpYBMtn1b5EMwB$21O2u3E4I/T4F//c26zOocdftxvxyMK5LXdxyZ9e5To=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "user10",
+    "first_name": "",
+    "last_name": "",
+    "email": "user10@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-05T21:03:52.099Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 3,
+  "fields": {
+    "title": "celery test",
+    "description": "demo",
+    "created_at": "2026-02-05T20:34:57.965Z",
+    "updated_at": "2026-02-05T20:34:57.965Z",
+    "deadline": "2026-12-31",
+    "priority": "Medium",
+    "status": "To do",
+    "assigned_by": 1
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 4,
+  "fields": {
+    "title": "Demo Task 1",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.592Z",
+    "updated_at": "2026-02-05T21:03:52.593Z",
+    "deadline": "2026-02-13",
+    "priority": "High",
+    "status": "Done",
+    "assigned_by": 8
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 5,
+  "fields": {
+    "title": "Demo Task 2",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.602Z",
+    "updated_at": "2026-02-05T21:03:52.602Z",
+    "deadline": "2026-02-14",
+    "priority": "Medium",
+    "status": "In progress",
+    "assigned_by": 4
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 6,
+  "fields": {
+    "title": "Demo Task 3",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.613Z",
+    "updated_at": "2026-02-05T21:03:52.613Z",
+    "deadline": "2026-02-15",
+    "priority": "High",
+    "status": "Done",
+    "assigned_by": 11
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 7,
+  "fields": {
+    "title": "Demo Task 4",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.623Z",
+    "updated_at": "2026-02-05T21:03:52.623Z",
+    "deadline": "2026-02-16",
+    "priority": "Low",
+    "status": "Done",
+    "assigned_by": 8
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 8,
+  "fields": {
+    "title": "Demo Task 5",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.634Z",
+    "updated_at": "2026-02-05T21:03:52.634Z",
+    "deadline": "2026-02-17",
+    "priority": "High",
+    "status": "In progress",
+    "assigned_by": 4
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 9,
+  "fields": {
+    "title": "Demo Task 6",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.644Z",
+    "updated_at": "2026-02-05T21:03:52.644Z",
+    "deadline": "2026-02-18",
+    "priority": "Medium",
+    "status": "In progress",
+    "assigned_by": 4
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 10,
+  "fields": {
+    "title": "Demo Task 7",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.655Z",
+    "updated_at": "2026-02-05T21:03:52.656Z",
+    "deadline": "2026-02-19",
+    "priority": "High",
+    "status": "Done",
+    "assigned_by": 5
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 11,
+  "fields": {
+    "title": "Demo Task 8",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.666Z",
+    "updated_at": "2026-02-05T21:03:52.666Z",
+    "deadline": "2026-02-20",
+    "priority": "Low",
+    "status": "To do",
+    "assigned_by": 2
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 12,
+  "fields": {
+    "title": "Demo Task 9",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.675Z",
+    "updated_at": "2026-02-05T21:03:52.675Z",
+    "deadline": "2026-02-21",
+    "priority": "Medium",
+    "status": "To do",
+    "assigned_by": 11
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 13,
+  "fields": {
+    "title": "Demo Task 10",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.685Z",
+    "updated_at": "2026-02-05T21:03:52.685Z",
+    "deadline": "2026-02-22",
+    "priority": "Medium",
+    "status": "To do",
+    "assigned_by": 5
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 14,
+  "fields": {
+    "title": "Demo Task 11",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.694Z",
+    "updated_at": "2026-02-05T21:03:52.694Z",
+    "deadline": "2026-02-23",
+    "priority": "High",
+    "status": "In progress",
+    "assigned_by": 3
+  }
+},
+{
+  "model": "api_app.task",
+  "pk": 15,
+  "fields": {
+    "title": "Demo Task 12",
+    "description": "Seeded demo task.",
+    "created_at": "2026-02-05T21:03:52.704Z",
+    "updated_at": "2026-02-05T21:03:52.704Z",
+    "deadline": "2026-02-24",
+    "priority": "Medium",
+    "status": "To do",
+    "assigned_by": 4
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 3,
+  "fields": {
+    "task": 3,
+    "user": 1,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 4,
+  "fields": {
+    "task": 4,
+    "user": 8,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 5,
+  "fields": {
+    "task": 5,
+    "user": 4,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 6,
+  "fields": {
+    "task": 6,
+    "user": 11,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 7,
+  "fields": {
+    "task": 7,
+    "user": 8,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 8,
+  "fields": {
+    "task": 8,
+    "user": 4,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 9,
+  "fields": {
+    "task": 9,
+    "user": 4,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 10,
+  "fields": {
+    "task": 10,
+    "user": 5,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 11,
+  "fields": {
+    "task": 11,
+    "user": 2,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 12,
+  "fields": {
+    "task": 12,
+    "user": 11,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 13,
+  "fields": {
+    "task": 13,
+    "user": 5,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 14,
+  "fields": {
+    "task": 14,
+    "user": 3,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.usertask",
+  "pk": 15,
+  "fields": {
+    "task": 15,
+    "user": 4,
+    "role": "Owner"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 1,
+  "fields": {
+    "task": 4,
+    "title": "Subtask 1 for Demo Task 1",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.720Z",
+    "updated_at": "2026-02-05T21:03:52.720Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 2,
+  "fields": {
+    "task": 4,
+    "title": "Subtask 2 for Demo Task 1",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.725Z",
+    "updated_at": "2026-02-05T21:03:52.725Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 3,
+  "fields": {
+    "task": 5,
+    "title": "Subtask 1 for Demo Task 2",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.730Z",
+    "updated_at": "2026-02-05T21:03:52.730Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 4,
+  "fields": {
+    "task": 5,
+    "title": "Subtask 2 for Demo Task 2",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.734Z",
+    "updated_at": "2026-02-05T21:03:52.734Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 5,
+  "fields": {
+    "task": 6,
+    "title": "Subtask 1 for Demo Task 3",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.738Z",
+    "updated_at": "2026-02-05T21:03:52.738Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 6,
+  "fields": {
+    "task": 6,
+    "title": "Subtask 2 for Demo Task 3",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.743Z",
+    "updated_at": "2026-02-05T21:03:52.743Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 7,
+  "fields": {
+    "task": 7,
+    "title": "Subtask 1 for Demo Task 4",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.747Z",
+    "updated_at": "2026-02-05T21:03:52.747Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 8,
+  "fields": {
+    "task": 7,
+    "title": "Subtask 2 for Demo Task 4",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.752Z",
+    "updated_at": "2026-02-05T21:03:52.752Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 9,
+  "fields": {
+    "task": 8,
+    "title": "Subtask 1 for Demo Task 5",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.756Z",
+    "updated_at": "2026-02-05T21:03:52.756Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 10,
+  "fields": {
+    "task": 8,
+    "title": "Subtask 2 for Demo Task 5",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.760Z",
+    "updated_at": "2026-02-05T21:03:52.760Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 11,
+  "fields": {
+    "task": 9,
+    "title": "Subtask 1 for Demo Task 6",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.766Z",
+    "updated_at": "2026-02-05T21:03:52.766Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 12,
+  "fields": {
+    "task": 9,
+    "title": "Subtask 2 for Demo Task 6",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.770Z",
+    "updated_at": "2026-02-05T21:03:52.770Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 13,
+  "fields": {
+    "task": 10,
+    "title": "Subtask 1 for Demo Task 7",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.774Z",
+    "updated_at": "2026-02-05T21:03:52.774Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 14,
+  "fields": {
+    "task": 10,
+    "title": "Subtask 2 for Demo Task 7",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.780Z",
+    "updated_at": "2026-02-05T21:03:52.780Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 15,
+  "fields": {
+    "task": 11,
+    "title": "Subtask 1 for Demo Task 8",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.785Z",
+    "updated_at": "2026-02-05T21:03:52.785Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 16,
+  "fields": {
+    "task": 11,
+    "title": "Subtask 2 for Demo Task 8",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.789Z",
+    "updated_at": "2026-02-05T21:03:52.789Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 17,
+  "fields": {
+    "task": 12,
+    "title": "Subtask 1 for Demo Task 9",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.793Z",
+    "updated_at": "2026-02-05T21:03:52.793Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 18,
+  "fields": {
+    "task": 12,
+    "title": "Subtask 2 for Demo Task 9",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.798Z",
+    "updated_at": "2026-02-05T21:03:52.798Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 19,
+  "fields": {
+    "task": 13,
+    "title": "Subtask 1 for Demo Task 10",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.803Z",
+    "updated_at": "2026-02-05T21:03:52.803Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 20,
+  "fields": {
+    "task": 13,
+    "title": "Subtask 2 for Demo Task 10",
+    "description": "Seeded demo subtask.",
+    "status": "In progress",
+    "created_at": "2026-02-05T21:03:52.807Z",
+    "updated_at": "2026-02-05T21:03:52.807Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 21,
+  "fields": {
+    "task": 14,
+    "title": "Subtask 1 for Demo Task 11",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.814Z",
+    "updated_at": "2026-02-05T21:03:52.814Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 22,
+  "fields": {
+    "task": 14,
+    "title": "Subtask 2 for Demo Task 11",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.818Z",
+    "updated_at": "2026-02-05T21:03:52.818Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 23,
+  "fields": {
+    "task": 15,
+    "title": "Subtask 1 for Demo Task 12",
+    "description": "Seeded demo subtask.",
+    "status": "To do",
+    "created_at": "2026-02-05T21:03:52.823Z",
+    "updated_at": "2026-02-05T21:03:52.823Z"
+  }
+},
+{
+  "model": "api_app.subtask",
+  "pk": 24,
+  "fields": {
+    "task": 15,
+    "title": "Subtask 2 for Demo Task 12",
+    "description": "Seeded demo subtask.",
+    "status": "Done",
+    "created_at": "2026-02-05T21:03:52.828Z",
+    "updated_at": "2026-02-05T21:03:52.828Z"
+  }
+}
+]
