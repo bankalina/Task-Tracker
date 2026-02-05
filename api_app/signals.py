@@ -6,6 +6,10 @@ from .models import Task, UserTask, UserTaskRole
 
 @receiver(post_save, sender=Task)
 def ensure_task_owner(sender, instance: Task, created: bool, **kwargs):
+    # Skip when loading fixtures (manage.py loaddata)
+    if kwargs.get("raw", False):
+        return
+    
     if not created:
         return
 
