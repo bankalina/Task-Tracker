@@ -8,6 +8,7 @@ from .utils import sign_token
 from .models import Task, UserTask, UserTaskRole, Subtask
 from .serializers import TaskSerializer, SubtaskSerializer, UserSerializer
 from .permissions import TaskRolePermission
+from .tasks import notify_task_created
 
 
 User = get_user_model()
@@ -71,6 +72,8 @@ class TaskListCreateView(generics.ListCreateAPIView):
             user=self.request.user,
             defaults={"role": UserTaskRole.OWNER},
         )
+
+        notify_task_created.delay(task.id)
 
 
 class TaskSubtaskListCreateView(generics.ListCreateAPIView):
