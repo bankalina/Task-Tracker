@@ -1,139 +1,120 @@
 # TaskTracker
 
-TaskTracker is a full-stack web application for task management with role-based access control. It is built using **Django (backend)**, **React (frontend)**, and **PostgreSQL (database)**.
+TaskTracker is a full-stack web application for task management with role-based access control. It uses Django (backend), React (frontend), and a relational database.
 
-## ✅ Features
+## Features
+- Create and manage tasks with title, description, deadline, and priority
+- Assign roles per task (Owner, Assigned, Viewer)
+- Track status (To do, In progress, Done)
+- Subtasks
+- API-based communication between backend and frontend
+- JWT authentication
 
-The application allows users to:
+## Tech stack
+Backend:
+- Django
+- Django REST Framework
+- drf-spectacular (OpenAPI)
+- Celery + RabbitMQ (async example)
 
-- Create and manage tasks with titles, descriptions, deadlines, and priorities  
-- Assign roles to users for each task (Owner, Assigned, Viewer)  
-- Track task progress with statuses (To do, In progress, Done)  
-- Break down tasks into subtasks  
-- View task details based on role permissions  
+Frontend:
+- React + Vite
 
-## ✅ Key Functionality
+Database:
+- SQLite for local development (default)
+- PostgreSQL supported by updating DATABASES in backend/settings.py
 
-- ✅ User authentication (registration & login)  
-- ✅ Task creation, editing, and deletion  
-- ✅ Priority levels (High, Medium, Low) with visual indicators  
-- ✅ Role-based access control:
-  - **Owner** – can delete and edit  
-  - **Assigned** – can update tasks  
-  - **Viewer** – can only view  
-- ✅ Subtask support  
-- ✅ Session or token-based access management  
-- ✅ Responsive design for desktop and mobile  
-- ✅ API-based communication between backend and frontend  
+## Local setup
 
-## ✅ Technology Stack
-
-### 🔹 Backend
-- Django (Python)  
-- Django REST Framework (API)  
-- PostgreSQL  
-- Role and permission logic
-
-### 🔹 Frontend
-- React  
-- Axios or Fetch API for backend communication  
-- CSS or a component library
-
-### 🔹 Deployment
-- Docker (separate containers for backend, frontend, and database)
-
-## ✅ Database Structure
-
-### Database ERD
-
-![Database ERD](docs/dbERD.drawio.svg)
-
-## Local setup instructions 
-
+### Backend
+1. Create and activate a virtual environment:
+```
 python -m venv .venv
-source .venv/bin/activate  # or Windows
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-
-### Run the Backend Locally
-
-Create and activate a virtual environment:
-
-```bash
-python -m venv .venv
-
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
 # macOS / Linux
 source .venv/bin/activate
-
-# Windows
-.\.venv\Scripts\activate
 ```
 
-Install dependencies and run migrations:
-
-```bash
+2. Install dependencies and run migrations:
+```
 pip install -r requirements.txt
 python manage.py migrate
 ```
 
-Start the development server:
+3. Optional seed data (30+ records):
+```
+python manage.py loaddata api_app/fixtures/seed.json
+```
 
-```bash
+4. Run the backend:
+```
 python manage.py runserver
 ```
 
-The backend will be available at:
+Backend URL:
 http://127.0.0.1:8000/
 
-### Run the Frontend Locally
-
-```bash
+### Frontend
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-The frontend will be available at:
-http://localhost:5173 (or http://localhost:3000 depending on configuration)
+Frontend URL:
+http://localhost:5173/
 
-### API Smoke Test
+### Celery and RabbitMQ (optional)
+Start RabbitMQ with Docker:
+```
+docker run -d --hostname tasktracker-rabbit --name tasktracker-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
 
-Check if the backend is running:
+Start the Celery worker:
+```
+python -m celery -A backend worker -l info
+```
 
-```bash
+On Windows, you may need:
+```
+python -m celery -A backend worker -l info --pool=solo
+```
+
+### API docs
+- Swagger UI: http://127.0.0.1:8000/api/docs/
+- OpenAPI schema: http://127.0.0.1:8000/api/schema/
+- Redoc: http://127.0.0.1:8000/api/redoc/
+
+### API smoke test
+```
 curl -i http://127.0.0.1:8000/api/profile/
 ```
-
-Expected response:
-401 Unauthorized (when no token is provided)
+Expected response: 401 Unauthorized (no token)
 
 ### Authentication (JWT)
-
-The API uses JSON Web Tokens (JWT) for authentication.
-
-Login returns two tokens:
-- `access` – short-lived token used for authenticated requests
-- `refresh` – long-lived token used to obtain a new access token
-
-Example login:
-
-```bash
+Login:
+```
 curl -X POST http://127.0.0.1:8000/api/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username":"demo","password":"demo123"}'
+  -d '{"username":"<username>","password":"<password>"}'
 ```
-Example authenticated request:
 
-```bash
+Authenticated profile request:
+```
 curl http://127.0.0.1:8000/api/profile/ \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
-Token refresh (if access token expires)
-
-```bash
+Token refresh:
+```
 curl -X POST http://127.0.0.1:8000/api/token/refresh/ \
   -H "Content-Type: application/json" \
   -d '{"refresh":"<REFRESH_TOKEN>"}'
+```
+
+### Seed data note
+Seed users have hashed passwords. If you need credentials, create your own user:
+```
+python manage.py createsuperuser
 ```
