@@ -4,6 +4,7 @@ from .views import (
     profile,
     UserListView,
     UserDetailView,
+    RegisterView,
     TaskListCreateView,
     TaskDetailView,
     TaskSubtaskListCreateView,
@@ -16,6 +17,7 @@ from .views import (
 urlpatterns = [
     path('users/', UserListView.as_view(), name="users_list"),
     path('users/<int:pk>/', UserDetailView.as_view(), name="users_detail"),
+    path("register/", RegisterView.as_view(), name="register"),
     path("login/", login),
     path("profile/", profile),
     path("tasks/", TaskListCreateView.as_view(), name="tasks_list_create"),

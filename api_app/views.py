@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework import status, generics
 from django.contrib.auth import authenticate, get_user_model
@@ -8,7 +8,13 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from .utils import sign_token
 from .models import Task, UserTask, UserTaskRole, Subtask
-from .serializers import TaskSerializer, SubtaskSerializer, UserSerializer, UserTaskSerializer
+from .serializers import (
+    TaskSerializer,
+    SubtaskSerializer,
+    UserSerializer,
+    UserTaskSerializer,
+    UserRegisterSerializer,
+)
 from .permissions import TaskRolePermission, TaskMembershipPermission
 from .tasks import notify_task_created
 
@@ -26,6 +32,21 @@ class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        tokens = sign_token(user)
+        data = serializer.data
+        data.update(tokens)
+        headers = self.get_success_headers(serializer.data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 @api_view(['POST'])
