@@ -36,6 +36,25 @@ class AuthFlowTests(TestCase):
         res = self.client.get("/api/profile/")
         self.assertEqual(res.status_code, 200, res.content)
 
+    def test_register_success_returns_tokens(self):
+        res = self.client.post(
+            "/api/register/",
+            {"username": "newuser", "email": "new@example.com", "password": "NewPass123!"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201, res.content)
+        self.assertIn("access", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertEqual(res.data["username"], "newuser")
+
+    def test_register_duplicate_username_fails(self):
+        res = self.client.post(
+            "/api/register/",
+            {"username": self.user.username, "email": "dup@example.com", "password": "NewPass123!"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400, res.content)
+
     def test_refresh_returns_new_access(self):
         _access, refresh = self.login()
 
