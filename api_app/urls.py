@@ -8,6 +8,8 @@ from .views import (
     TaskDetailView,
     TaskSubtaskListCreateView,
     SubtaskDetailView,
+    TaskMembershipListCreateView,
+    TaskMembershipDetailView,
 )
 
 
@@ -20,4 +22,6 @@ urlpatterns = [
     path("tasks/<int:pk>/", TaskDetailView.as_view(), name="task_detail"),
     path("tasks/<int:task_id>/subtasks/", TaskSubtaskListCreateView.as_view(), name="task_subtasks"),
     path("subtasks/<int:pk>/", SubtaskDetailView.as_view(), name="subtask_detail"),
+    path("tasks/<int:task_id>/memberships/", TaskMembershipListCreateView.as_view(), name="task_memberships"),
+    path("tasks/<int:task_id>/memberships/<int:user_id>/", TaskMembershipDetailView.as_view(), name="task_membership_detail"),
 ]
