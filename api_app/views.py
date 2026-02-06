@@ -1,13 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework import status, generics
 from django.contrib.auth import authenticate, get_user_model
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 from .utils import sign_token
 from .models import Task, UserTask, UserTaskRole, Subtask
-from .serializers import TaskSerializer, SubtaskSerializer, UserSerializer
-from .permissions import TaskRolePermission
+from .serializers import TaskSerializer, SubtaskSerializer, UserSerializer, UserTaskSerializer
+from .permissions import TaskRolePermission, TaskMembershipPermission
 from .tasks import notify_task_created
 
 
@@ -101,6 +103,36 @@ class TaskSubtaskListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("You don't have permission to add subtasks for this task.")
 
         serializer.save(task_id=task_id)
+
+
+class TaskMembershipListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserTaskSerializer
+    permission_classes = [IsAuthenticated, TaskMembershipPermission]
+
+    def get_queryset(self):
+        task_id = self.kwargs["task_id"]
+        return UserTask.objects.filter(task_id=task_id).select_related("user").order_by("id")
+
+    def perform_create(self, serializer):
+        task_id = self.kwargs["task_id"]
+        try:
+            serializer.save(task_id=task_id)
+        except IntegrityError:
+            raise ValidationError({"detail": "User already assigned to this task."})
+
+
+class TaskMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserTaskSerializer
+    permission_classes = [IsAuthenticated, TaskMembershipPermission]
+
+    def get_queryset(self):
+        task_id = self.kwargs["task_id"]
+        return UserTask.objects.filter(task_id=task_id).select_related("user")
+
+    def get_object(self):
+        task_id = self.kwargs["task_id"]
+        user_id = self.kwargs["user_id"]
+        return get_object_or_404(UserTask, task_id=task_id, user_id=user_id)
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
