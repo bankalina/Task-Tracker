@@ -93,6 +93,13 @@ curl -i http://127.0.0.1:8000/api/profile/
 Expected response: 401 Unauthorized (no token)
 
 ### Authentication (JWT)
+Registration:
+```
+curl -X POST http://127.0.0.1:8000/api/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"<username>","email":"<email>","password":"<password>"}'
+```
+
 Login:
 ```
 curl -X POST http://127.0.0.1:8000/api/login/ \
