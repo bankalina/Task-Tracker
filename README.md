@@ -24,6 +24,26 @@ Database:
 - SQLite for local development (default)
 - PostgreSQL supported by updating DATABASES in backend/settings.py
 
+## Docker (recommended)
+Run everything with Docker Compose (backend, frontend, PostgreSQL, RabbitMQ):
+```
+docker compose up --build
+```
+
+Backend URL:
+http://127.0.0.1:8000/
+
+Frontend URL:
+http://localhost:5173/
+
+Optional seed data:
+```
+docker compose exec backend python manage.py loaddata api_app/fixtures/seed.json
+```
+
+RabbitMQ management UI:
+http://localhost:15672/ (guest/guest)
+
 ## Local setup
 
 ### Backend
