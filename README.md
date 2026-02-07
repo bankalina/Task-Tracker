@@ -145,3 +145,18 @@ Seed users have hashed passwords. If you need credentials, create your own user:
 ```
 python manage.py createsuperuser
 ```
+
+## Technology rationale
+- Django + DRF: fast implementation of secure REST API with clear authentication/permissions model and good testability.
+- React + Vite: fast local development and simple component-based UI for iterative frontend work.
+- PostgreSQL: reliable relational model for tasks/subtasks/memberships and predictable SQL behavior.
+- Celery + RabbitMQ: explicit async processing for background work (example notification job after task creation).
+- Docker Compose: reproducible local stack across machines (backend, frontend, database, broker, worker).
+
+## Architecture (layers)
+Backend is organized into:
+- API layer (`api_app/views.py`): request/response handling and endpoint orchestration.
+- Service layer (`api_app/services/`): business logic for auth, tasks, subtasks, and memberships.
+- Data layer (`api_app/models.py`): domain entities and persistence.
+
+This separation keeps views thin, reduces duplicated logic, and makes behavior easier to test and extend.
