@@ -249,3 +249,38 @@ erDiagram
 - `frontend/src/api.js` centralizes API communication and token refresh flow.
 - UI is split into focused components for auth, tasks, details, subtasks, and memberships.
 - Frontend consumes backend REST API and handles loading/error states.
+
+## Authentication and Authorization (JWT + Roles)
+
+### JWT authentication flow
+
+- `POST /api/register/` creates a user and returns JWT token pair (`access`, `refresh`).
+- `POST /api/login/` returns JWT token pair for existing users.
+- Protected endpoints require `Authorization: Bearer <access_token>`.
+- `POST /api/token/refresh/` issues a new access token from a valid refresh token.
+- `POST /api/logout/` invalidates refresh token using blacklist (`rest_framework_simplejwt.token_blacklist`).
+
+### Role model
+
+Roles are stored per task in `UserTask.role`:
+- `Owner`
+- `Assigned`
+- `Viewer`
+
+Permission matrix:
+
+| Action | Owner | Assigned | Viewer |
+|---|---|---|---|
+| View task details | Yes | Yes | Yes |
+| Update task | Yes | Yes | No |
+| Delete task | Yes | No | No |
+| Create/update/delete subtasks | Yes | Yes | No |
+| Manage memberships | Yes | No | No |
+
+### Minimal verification checklist
+
+Use these API checks during demo/evaluation:
+- Request protected endpoint without token -> `401 Unauthorized`
+- Request forbidden operation with lower role -> `403 Forbidden`
+- Update task as `Assigned` user -> `200 OK`
+- Delete task as `Owner` user -> `204 No Content`
