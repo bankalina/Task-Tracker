@@ -4,12 +4,19 @@ import { createApi } from "./api";
 import AuthPanel from "./components/AuthPanel";
 import TasksPanel from "./components/TasksPanel";
 import TaskDetailsPanel from "./components/TaskDetailsPanel";
+import SubtasksPanel from "./components/SubtasksPanel";
 
 const EMPTY_TASK_FORM = {
   title: "",
   description: "",
   deadline: "",
   priority: "Medium",
+  status: "To do",
+};
+
+const EMPTY_SUBTASK_FORM = {
+  title: "",
+  description: "",
   status: "To do",
 };
 
@@ -63,6 +70,12 @@ function App() {
   const [taskEditForm, setTaskEditForm] = useState(EMPTY_TASK_FORM);
   const [taskEditBusy, setTaskEditBusy] = useState(false);
   const [taskEditError, setTaskEditError] = useState("");
+  const [subtasks, setSubtasks] = useState([]);
+  const [subtasksLoading, setSubtasksLoading] = useState(false);
+  const [subtasksError, setSubtasksError] = useState("");
+  const [subtaskForm, setSubtaskForm] = useState(EMPTY_SUBTASK_FORM);
+  const [subtaskBusy, setSubtaskBusy] = useState(false);
+  const [subtaskError, setSubtaskError] = useState("");
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) || null,
@@ -86,6 +99,7 @@ function App() {
           setProfile(null);
           setTasks([]);
           setSelectedTaskId(null);
+          setSubtasks([]);
         },
       }),
     [tokens.access, tokens.refresh],
@@ -120,6 +134,24 @@ function App() {
     });
   }, [selectedTask]);
 
+  const loadSubtasks = useCallback(
+    async (taskId) => {
+      if (!taskId) return;
+      setSubtasksLoading(true);
+      setSubtasksError("");
+      try {
+        const data = await api.get(`/tasks/${taskId}/subtasks/`);
+        setSubtasks(data);
+      } catch (error) {
+        setSubtasksError(getErrorMessage(error));
+        setSubtasks([]);
+      } finally {
+        setSubtasksLoading(false);
+      }
+    },
+    [api],
+  );
+
   useEffect(() => {
     if (!tokens.access) return;
     let mounted = true;
@@ -146,6 +178,11 @@ function App() {
       mounted = false;
     };
   }, [tokens.access, api, loadTasks]);
+
+  useEffect(() => {
+    if (!tokens.access || !selectedTaskId) return;
+    loadSubtasks(selectedTaskId);
+  }, [tokens.access, selectedTaskId, loadSubtasks]);
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
@@ -189,6 +226,7 @@ function App() {
       setProfile(null);
       setTasks([]);
       setSelectedTaskId(null);
+      setSubtasks([]);
     }
   }
 
@@ -233,8 +271,47 @@ function App() {
     try {
       await api.del(`/tasks/${selectedTask.id}/`);
       await loadTasks();
+      setSubtasks([]);
     } catch (error) {
       setTaskEditError(getErrorMessage(error));
+    }
+  }
+
+  async function handleSubtaskCreate(event) {
+    event.preventDefault();
+    if (!selectedTask) return;
+    setSubtaskBusy(true);
+    setSubtaskError("");
+    try {
+      await api.post(`/tasks/${selectedTask.id}/subtasks/`, subtaskForm);
+      setSubtaskForm(EMPTY_SUBTASK_FORM);
+      await loadSubtasks(selectedTask.id);
+    } catch (error) {
+      setSubtaskError(getErrorMessage(error));
+    } finally {
+      setSubtaskBusy(false);
+    }
+  }
+
+  async function handleSubtaskStatusChange(subtaskId, status) {
+    if (!selectedTask) return;
+    setSubtaskError("");
+    try {
+      await api.patch(`/subtasks/${subtaskId}/`, { status });
+      await loadSubtasks(selectedTask.id);
+    } catch (error) {
+      setSubtaskError(getErrorMessage(error));
+    }
+  }
+
+  async function handleSubtaskDelete(subtaskId) {
+    if (!selectedTask) return;
+    setSubtaskError("");
+    try {
+      await api.del(`/subtasks/${subtaskId}/`);
+      await loadSubtasks(selectedTask.id);
+    } catch (error) {
+      setSubtaskError(getErrorMessage(error));
     }
   }
 
@@ -284,6 +361,21 @@ function App() {
         taskEditError={taskEditError}
         onTaskUpdate={handleTaskUpdate}
         onTaskDelete={handleTaskDelete}
+      />
+
+      <SubtasksPanel
+        selectedTask={selectedTask}
+        subtasks={subtasks}
+        subtasksLoading={subtasksLoading}
+        subtasksError={subtasksError}
+        subtaskForm={subtaskForm}
+        setSubtaskForm={setSubtaskForm}
+        subtaskBusy={subtaskBusy}
+        subtaskError={subtaskError}
+        onSubtaskCreate={handleSubtaskCreate}
+        onSubtaskStatusChange={handleSubtaskStatusChange}
+        onSubtaskDelete={handleSubtaskDelete}
+        onRefreshSubtasks={loadSubtasks}
       />
     </main>
   );
