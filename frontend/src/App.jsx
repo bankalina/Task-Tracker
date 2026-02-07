@@ -3,6 +3,7 @@ import "./App.css";
 import { createApi } from "./api";
 import AuthPanel from "./components/AuthPanel";
 import TasksPanel from "./components/TasksPanel";
+import TaskDetailsPanel from "./components/TaskDetailsPanel";
 
 const EMPTY_TASK_FORM = {
   title: "",
@@ -59,6 +60,14 @@ function App() {
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tasksError, setTasksError] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [taskEditForm, setTaskEditForm] = useState(EMPTY_TASK_FORM);
+  const [taskEditBusy, setTaskEditBusy] = useState(false);
+  const [taskEditError, setTaskEditError] = useState("");
+
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.id === selectedTaskId) || null,
+    [tasks, selectedTaskId],
+  );
 
   const api = useMemo(
     () =>
@@ -99,6 +108,17 @@ function App() {
       setTasksLoading(false);
     }
   }, [api]);
+
+  useEffect(() => {
+    if (!selectedTask) return;
+    setTaskEditForm({
+      title: selectedTask.title || "",
+      description: selectedTask.description || "",
+      deadline: selectedTask.deadline || "",
+      priority: selectedTask.priority || "Medium",
+      status: selectedTask.status || "To do",
+    });
+  }, [selectedTask]);
 
   useEffect(() => {
     if (!tokens.access) return;
@@ -190,6 +210,34 @@ function App() {
     }
   }
 
+  async function handleTaskUpdate(event) {
+    event.preventDefault();
+    if (!selectedTask) return;
+    setTaskEditBusy(true);
+    setTaskEditError("");
+    try {
+      await api.patch(`/tasks/${selectedTask.id}/`, taskEditForm);
+      await loadTasks();
+    } catch (error) {
+      setTaskEditError(getErrorMessage(error));
+    } finally {
+      setTaskEditBusy(false);
+    }
+  }
+
+  async function handleTaskDelete() {
+    if (!selectedTask) return;
+    const accepted = window.confirm("Delete this task?");
+    if (!accepted) return;
+    setTaskEditError("");
+    try {
+      await api.del(`/tasks/${selectedTask.id}/`);
+      await loadTasks();
+    } catch (error) {
+      setTaskEditError(getErrorMessage(error));
+    }
+  }
+
   if (!tokens.access) {
     return (
       <AuthPanel
@@ -226,6 +274,16 @@ function App() {
         selectedTaskId={selectedTaskId}
         setSelectedTaskId={setSelectedTaskId}
         onRefreshTasks={loadTasks}
+      />
+
+      <TaskDetailsPanel
+        selectedTask={selectedTask}
+        taskEditForm={taskEditForm}
+        setTaskEditForm={setTaskEditForm}
+        taskEditBusy={taskEditBusy}
+        taskEditError={taskEditError}
+        onTaskUpdate={handleTaskUpdate}
+        onTaskDelete={handleTaskDelete}
       />
     </main>
   );
