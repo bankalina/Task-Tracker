@@ -1,42 +1,114 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.wrapper {
+  width: min(980px, 92vw);
+  margin: 2rem auto 3rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(130deg, rgba(255, 247, 233, 0.88), rgba(245, 250, 255, 0.88));
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 1rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  letter-spacing: 0.02em;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+h2 {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+section {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 0.95rem;
+}
+
+section p {
+  margin: 0.45rem 0;
+  color: var(--ink-soft);
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.55rem 0.78rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #c85a2f, #db8b37);
+  cursor: pointer;
+  transition: transform 110ms ease, opacity 110ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.56rem 0.66rem;
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+textarea {
+  resize: vertical;
+}
+
+ul {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+li {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.52rem 0.6rem;
+  background: #fff;
+}
+
+li button {
+  margin-right: 0.4rem;
+}
+
+@media (max-width: 700px) {
+  .wrapper {
+    width: 95vw;
+    padding: 0.8rem;
+    margin-top: 1rem;
+    border-radius: 16px;
   }
-  to {
-    transform: rotate(360deg);
+
+  section {
+    padding: 0.75rem;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
