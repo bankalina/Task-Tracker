@@ -176,3 +176,76 @@ Validation run (after `python manage.py loaddata seed`) confirmed:
 - `subtasks = 24`
 - `memberships = 13`
 - `total = 61` records (minimum requirement: 30)
+
+## ERD (Database Architecture)
+
+```mermaid
+erDiagram
+    USER ||--o{ TASK : "creates (assigned_by)"
+    USER ||--o{ USER_TASK : "has role in"
+    TASK ||--o{ USER_TASK : "includes member"
+    TASK ||--o{ SUBTASK : "contains"
+    USER ||--o{ OUTSTANDING_TOKEN : "owns"
+
+    USER {
+        int id PK
+        string username
+        string email
+        string password
+    }
+
+    TASK {
+        int id PK
+        int assigned_by_id FK
+        string title
+        string description
+        date deadline
+        string priority
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    USER_TASK {
+        int id PK
+        int user_id FK
+        int task_id FK
+        string role
+    }
+
+    SUBTASK {
+        int id PK
+        int task_id FK
+        string title
+        string description
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    OUTSTANDING_TOKEN {
+        bigint id PK
+        int user_id FK
+        string jti
+        string token
+        datetime created_at
+        datetime expires_at
+    }
+```
+
+## Application Architecture
+
+### Backend (Django + DRF)
+
+- `api_app/urls.py` exposes REST endpoints and maps them to views.
+- `api_app/views.py` handles HTTP concerns (request validation, permissions, response status codes).
+- `api_app/services/` contains business logic split by domain (`auth_service.py`, `task_service.py`, `subtask_service.py`, `membership_service.py`).
+- `api_app/serializers.py` defines API input/output schemas and validation.
+- `api_app/models.py` stores persistence model and relations (tasks, subtasks, memberships).
+- `api_app/tasks.py` + `backend/celery.py` provide async queue processing (RabbitMQ + Celery).
+
+### Frontend (React + Vite)
+
+- `frontend/src/api.js` centralizes API communication and token refresh flow.
+- UI is split into focused components for auth, tasks, details, subtasks, and memberships.
+- Frontend consumes backend REST API and handles loading/error states.
