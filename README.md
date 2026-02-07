@@ -313,3 +313,19 @@ Use these API checks during demo/evaluation:
 - Swagger UI endpoint: `/api/docs/`
 - ReDoc endpoint: `/api/redoc/`
 - Documentation includes endpoint groups, auth scheme, request/response schemas, and examples for core resources.
+
+## Frontend-API Integration and Code Quality
+
+### Frontend -> API integration
+
+- Frontend uses backend REST API for auth, tasks, subtasks, memberships, and users.
+- API communication is centralized in `frontend/src/api.js` (single client + JWT refresh flow).
+- UI handles async states with explicit loading/error handling during API requests.
+- Development setup uses Vite + Docker networking/proxy, so frontend communicates with backend via configured API base URL.
+
+### Code quality practices
+
+- Backend follows layered structure: `views` (HTTP), `services` (business logic), `serializers` (validation/schema), `models` (persistence).
+- Role and permission logic is kept consistent across task/subtask/membership endpoints.
+- Naming and structure are kept consistent (`snake_case` in Python, component-based structure in React).
+- Basic frontend quality gates are in place via `npm run lint` and `npm run build`.
