@@ -1,7 +1,16 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { createApi } from "./api";
 import AuthPanel from "./components/AuthPanel";
+import TasksPanel from "./components/TasksPanel";
+
+const EMPTY_TASK_FORM = {
+  title: "",
+  description: "",
+  deadline: "",
+  priority: "Medium",
+  status: "To do",
+};
 
 function readStoredTokens() {
   return {
@@ -40,6 +49,16 @@ function App() {
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState("");
   const [profile, setProfile] = useState(null);
+  const [bootError, setBootError] = useState("");
+  const [bootLoading, setBootLoading] = useState(false);
+
+  const [taskForm, setTaskForm] = useState(EMPTY_TASK_FORM);
+  const [taskCreateBusy, setTaskCreateBusy] = useState(false);
+  const [taskCreateError, setTaskCreateError] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksError, setTasksError] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   const api = useMemo(
     () =>
@@ -56,10 +75,57 @@ function App() {
           setTokens(empty);
           writeStoredTokens(empty);
           setProfile(null);
+          setTasks([]);
+          setSelectedTaskId(null);
         },
       }),
     [tokens.access, tokens.refresh],
   );
+
+  const loadTasks = useCallback(async () => {
+    setTasksLoading(true);
+    setTasksError("");
+    try {
+      const data = await api.get("/tasks/");
+      setTasks(data);
+      setSelectedTaskId((previous) => {
+        if (!data.length) return null;
+        if (!previous) return data[0].id;
+        return data.some((task) => task.id === previous) ? previous : data[0].id;
+      });
+    } catch (error) {
+      setTasksError(getErrorMessage(error));
+    } finally {
+      setTasksLoading(false);
+    }
+  }, [api]);
+
+  useEffect(() => {
+    if (!tokens.access) return;
+    let mounted = true;
+    (async () => {
+      setBootLoading(true);
+      setBootError("");
+      try {
+        const [me] = await Promise.all([api.get("/profile/"), loadTasks()]);
+        if (mounted) {
+          setProfile(me);
+        }
+      } catch (error) {
+        if (mounted) {
+          setBootError(getErrorMessage(error));
+        }
+      } finally {
+        if (mounted) {
+          setBootLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [tokens.access, api, loadTasks]);
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
@@ -82,9 +148,6 @@ function App() {
       setTokens(next);
       writeStoredTokens(next);
       setAuthForm({ username: "", email: "", password: "" });
-
-      const me = await api.get("/profile/");
-      setProfile(me);
     } catch (error) {
       setAuthError(getErrorMessage(error));
     } finally {
@@ -104,6 +167,26 @@ function App() {
       setTokens(empty);
       writeStoredTokens(empty);
       setProfile(null);
+      setTasks([]);
+      setSelectedTaskId(null);
+    }
+  }
+
+  async function handleTaskCreate(event) {
+    event.preventDefault();
+    setTaskCreateBusy(true);
+    setTaskCreateError("");
+    try {
+      const created = await api.post("/tasks/", taskForm);
+      setTaskForm(EMPTY_TASK_FORM);
+      await loadTasks();
+      if (created?.id) {
+        setSelectedTaskId(created.id);
+      }
+    } catch (error) {
+      setTaskCreateError(getErrorMessage(error));
+    } finally {
+      setTaskCreateBusy(false);
     }
   }
 
@@ -125,7 +208,25 @@ function App() {
     <main className="wrapper">
       <h1>TaskTracker</h1>
       <p>{profile ? `Logged in as ${profile.username}` : "Authenticated session active."}</p>
-      <button onClick={handleLogout}>Log out</button>
+      <p>
+        <button onClick={handleLogout}>Log out</button>
+      </p>
+      {bootError && <p>{bootError}</p>}
+      {bootLoading && <p>Loading workspace...</p>}
+
+      <TasksPanel
+        taskForm={taskForm}
+        setTaskForm={setTaskForm}
+        taskCreateBusy={taskCreateBusy}
+        taskCreateError={taskCreateError}
+        onTaskCreate={handleTaskCreate}
+        tasks={tasks}
+        tasksLoading={tasksLoading}
+        tasksError={tasksError}
+        selectedTaskId={selectedTaskId}
+        setSelectedTaskId={setSelectedTaskId}
+        onRefreshTasks={loadTasks}
+      />
     </main>
   );
 }
