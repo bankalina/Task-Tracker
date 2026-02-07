@@ -27,7 +27,7 @@ services:
       - "8000:8000"
     environment:
       DJANGO_DEBUG: "1"
-      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,backend"
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: tasktracker
       DB_USER: tasktracker
