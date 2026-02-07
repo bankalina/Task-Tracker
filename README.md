@@ -284,3 +284,32 @@ Use these API checks during demo/evaluation:
 - Request forbidden operation with lower role -> `403 Forbidden`
 - Update task as `Assigned` user -> `200 OK`
 - Delete task as `Owner` user -> `204 No Content`
+
+## API Standards and Documentation
+
+### REST contract
+
+- API is versioned and exposed under `/api/`.
+- JSON is the default transport format for request/response bodies.
+- JWT Bearer authentication is used on protected routes.
+- Status codes follow REST semantics:
+  - `200` for successful read/update
+  - `201` for successful create
+  - `204` for successful delete/logout without payload
+  - `400` for validation and malformed request errors
+  - `401` for missing/invalid credentials
+  - `403` for permission denial (role-based access)
+  - `404` for missing resource
+
+### Error response shape
+
+- DRF default error payload is used consistently, for example:
+  - `{"detail": "Authentication credentials were not provided."}` for `401`
+  - field-level validation errors for `400`
+
+### OpenAPI / Swagger
+
+- OpenAPI schema endpoint: `/api/schema/`
+- Swagger UI endpoint: `/api/docs/`
+- ReDoc endpoint: `/api/redoc/`
+- Documentation includes endpoint groups, auth scheme, request/response schemas, and examples for core resources.
