@@ -160,3 +160,19 @@ Backend is organized into:
 - Data layer (`api_app/models.py`): domain entities and persistence.
 
 This separation keeps views thin, reduces duplicated logic, and makes behavior easier to test and extend.
+## Data Model (3NF) and Seed Data
+
+The database model is normalized to **3NF**:
+- Core entities are separated into dedicated tables (`auth_user`, `Task`, `Subtask`, `UserTask`).
+- Many-to-many user-task assignment is modeled through `UserTask` with role attributes.
+- Non-key attributes depend on the key, the whole key, and nothing but the key.
+- Redundant data is minimized by using foreign keys and role/status/priority values.
+
+Seed data is provided in `api_app/fixtures/seed.json`.
+
+Validation run (after `python manage.py loaddata seed`) confirmed:
+- `users = 11`
+- `tasks = 13`
+- `subtasks = 24`
+- `memberships = 13`
+- `total = 61` records (minimum requirement: 30)
