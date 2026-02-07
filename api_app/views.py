@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -8,12 +9,14 @@ from drf_spectacular.utils import (
 )
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api_app.models import Subtask, Task, UserTask
 from api_app.permissions import TaskMembershipPermission, TaskRolePermission
 from api_app.serializers import (
+    DeleteAccountSerializer,
     LoginRequestSerializer,
     ProfileSerializer,
     RegisterResponseSerializer,
@@ -197,6 +200,7 @@ def login(request):
 
 
 @extend_schema(
+    methods=["GET"],
     tags=["Auth"],
     responses={
         200: ProfileSerializer,
@@ -204,14 +208,38 @@ def login(request):
     },
     description="Return current authenticated user profile.",
 )
-@api_view(["GET"])
+@extend_schema(
+    methods=["DELETE"],
+    tags=["Auth"],
+    request=DeleteAccountSerializer,
+    responses={
+        204: OpenApiResponse(description="Account deleted"),
+        400: OpenApiResponse(description="Invalid password"),
+        401: OpenApiResponse(description="Unauthorized"),
+    },
+    description="Delete current authenticated user account after password confirmation.",
+)
+@api_view(["GET", "DELETE"])
 @permission_classes([IsAuthenticated])
 def profile(request):
-    user = request.user
-    return Response(
-        {"id": user.id, "username": user.username, "email": user.email},
-        status=status.HTTP_200_OK,
-    )
+    if request.method == "GET":
+        user = request.user
+        return Response(
+            {"id": user.id, "username": user.username, "email": user.email},
+            status=status.HTTP_200_OK,
+        )
+
+    serializer = DeleteAccountSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    password = serializer.validated_data["password"]
+    if not request.user.check_password(password):
+        return Response(
+            {"password": ["Invalid password."]},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request.user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(
@@ -241,7 +269,15 @@ class TaskListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Task.objects.filter(memberships__user=self.request.user).order_by("-created_at")
+        membership_qs = UserTask.objects.filter(user=self.request.user).only("task_id", "role")
+        return (
+            Task.objects.filter(memberships__user=self.request.user)
+            .prefetch_related(
+                Prefetch("memberships", queryset=membership_qs, to_attr="current_user_memberships")
+            )
+            .order_by("-created_at")
+            .distinct()
+        )
 
     def perform_create(self, serializer):
         create_task_for_user(serializer=serializer, user=self.request.user)
@@ -372,6 +408,17 @@ class TaskMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
         user_id = self.kwargs["user_id"]
         return get_object_or_404(UserTask, task_id=task_id, user_id=user_id)
 
+    def perform_update(self, serializer):
+        membership = self.get_object()
+        if membership.user_id == self.request.user.id:
+            raise ValidationError({"detail": "You cannot change your own role in this task."})
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if instance.user_id == self.request.user.id:
+            raise ValidationError({"detail": "You cannot remove yourself from this task."})
+        instance.delete()
+
 
 @extend_schema_view(
     get=extend_schema(
@@ -414,7 +461,14 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, TaskRolePermission]
 
     def get_queryset(self):
-        return Task.objects.filter(memberships__user=self.request.user)
+        membership_qs = UserTask.objects.filter(user=self.request.user).only("task_id", "role")
+        return (
+            Task.objects.filter(memberships__user=self.request.user)
+            .prefetch_related(
+                Prefetch("memberships", queryset=membership_qs, to_attr="current_user_memberships")
+            )
+            .distinct()
+        )
 
 
 @extend_schema_view(

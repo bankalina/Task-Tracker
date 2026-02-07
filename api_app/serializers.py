@@ -7,11 +7,24 @@ User = get_user_model()
 
 class TaskSerializer(serializers.ModelSerializer):
     assigned_by = serializers.ReadOnlyField(source="assigned_by.username")
+    current_user_role = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
         fields = "__all__"
         read_only_fields = ("created_at", "updated_at")
+
+    def get_current_user_role(self, obj):
+        prefetched = getattr(obj, "current_user_memberships", None)
+        if prefetched:
+            return prefetched[0].role
+
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+
+        membership = UserTask.objects.filter(task=obj, user=request.user).only("role").first()
+        return membership.role if membership else None
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
@@ -62,6 +75,10 @@ class ProfileSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     username = serializers.CharField()
     email = serializers.EmailField(allow_blank=True)
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
 
 class UserTaskSerializer(serializers.ModelSerializer):

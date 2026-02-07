@@ -92,10 +92,24 @@ class TaskMembershipTests(TestCase):
         )
         self.assertIn(res.status_code, (403, 404), res.content)
 
+    def test_owner_cannot_update_own_role(self):
+        self.auth(self.owner)
+        res = self.client.patch(
+            f"/api/tasks/{self.task.id}/memberships/{self.owner.id}/",
+            {"role": UserTaskRole.ASSIGNED},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400, res.content)
+
     def test_owner_can_remove_member(self):
         self.auth(self.owner)
         res = self.client.delete(f"/api/tasks/{self.task.id}/memberships/{self.viewer.id}/")
         self.assertEqual(res.status_code, 204, res.content)
+
+    def test_owner_cannot_remove_self(self):
+        self.auth(self.owner)
+        res = self.client.delete(f"/api/tasks/{self.task.id}/memberships/{self.owner.id}/")
+        self.assertEqual(res.status_code, 400, res.content)
 
     def test_assigned_cannot_remove_member(self):
         self.auth(self.assigned)

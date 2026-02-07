@@ -84,3 +84,27 @@ class AuthFlowTests(TestCase):
             format="json",
         )
         self.assertIn(res2.status_code, (401, 400), res2.content)
+
+    def test_delete_profile_requires_password_and_deletes_account(self):
+        access, _refresh = self.login()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+        res = self.client.delete(
+            "/api/profile/",
+            {"password": self.password},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 204, res.content)
+        User = get_user_model()
+        self.assertFalse(User.objects.filter(username="testuser").exists())
+
+    def test_delete_profile_with_invalid_password_fails(self):
+        access, _refresh = self.login()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
+        res = self.client.delete(
+            "/api/profile/",
+            {"password": "WrongPass123"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400, res.content)
