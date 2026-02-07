@@ -5,6 +5,7 @@ import AuthPanel from "./components/AuthPanel";
 import TasksPanel from "./components/TasksPanel";
 import TaskDetailsPanel from "./components/TaskDetailsPanel";
 import SubtasksPanel from "./components/SubtasksPanel";
+import MembershipsPanel from "./components/MembershipsPanel";
 
 const EMPTY_TASK_FORM = {
   title: "",
@@ -18,6 +19,11 @@ const EMPTY_SUBTASK_FORM = {
   title: "",
   description: "",
   status: "To do",
+};
+
+const EMPTY_MEMBERSHIP_FORM = {
+  user_id: "",
+  role: "Assigned",
 };
 
 function readStoredTokens() {
@@ -59,6 +65,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [bootError, setBootError] = useState("");
   const [bootLoading, setBootLoading] = useState(false);
+  const [users, setUsers] = useState([]);
 
   const [taskForm, setTaskForm] = useState(EMPTY_TASK_FORM);
   const [taskCreateBusy, setTaskCreateBusy] = useState(false);
@@ -76,6 +83,12 @@ function App() {
   const [subtaskForm, setSubtaskForm] = useState(EMPTY_SUBTASK_FORM);
   const [subtaskBusy, setSubtaskBusy] = useState(false);
   const [subtaskError, setSubtaskError] = useState("");
+  const [memberships, setMemberships] = useState([]);
+  const [membershipsLoading, setMembershipsLoading] = useState(false);
+  const [membershipsError, setMembershipsError] = useState("");
+  const [membershipForm, setMembershipForm] = useState(EMPTY_MEMBERSHIP_FORM);
+  const [membershipBusy, setMembershipBusy] = useState(false);
+  const [membershipError, setMembershipError] = useState("");
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) || null,
@@ -100,6 +113,7 @@ function App() {
           setTasks([]);
           setSelectedTaskId(null);
           setSubtasks([]);
+          setMemberships([]);
         },
       }),
     [tokens.access, tokens.refresh],
@@ -120,6 +134,15 @@ function App() {
       setTasksError(getErrorMessage(error));
     } finally {
       setTasksLoading(false);
+    }
+  }, [api]);
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await api.get("/users/");
+      setUsers(data);
+    } catch {
+      setUsers([]);
     }
   }, [api]);
 
@@ -152,6 +175,24 @@ function App() {
     [api],
   );
 
+  const loadMemberships = useCallback(
+    async (taskId) => {
+      if (!taskId) return;
+      setMembershipsLoading(true);
+      setMembershipsError("");
+      try {
+        const data = await api.get(`/tasks/${taskId}/memberships/`);
+        setMemberships(data);
+      } catch (error) {
+        setMembershipsError(getErrorMessage(error));
+        setMemberships([]);
+      } finally {
+        setMembershipsLoading(false);
+      }
+    },
+    [api],
+  );
+
   useEffect(() => {
     if (!tokens.access) return;
     let mounted = true;
@@ -159,7 +200,7 @@ function App() {
       setBootLoading(true);
       setBootError("");
       try {
-        const [me] = await Promise.all([api.get("/profile/"), loadTasks()]);
+        const [me] = await Promise.all([api.get("/profile/"), loadTasks(), loadUsers()]);
         if (mounted) {
           setProfile(me);
         }
@@ -177,12 +218,13 @@ function App() {
     return () => {
       mounted = false;
     };
-  }, [tokens.access, api, loadTasks]);
+  }, [tokens.access, api, loadTasks, loadUsers]);
 
   useEffect(() => {
     if (!tokens.access || !selectedTaskId) return;
     loadSubtasks(selectedTaskId);
-  }, [tokens.access, selectedTaskId, loadSubtasks]);
+    loadMemberships(selectedTaskId);
+  }, [tokens.access, selectedTaskId, loadSubtasks, loadMemberships]);
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
@@ -227,6 +269,7 @@ function App() {
       setTasks([]);
       setSelectedTaskId(null);
       setSubtasks([]);
+      setMemberships([]);
     }
   }
 
@@ -272,6 +315,7 @@ function App() {
       await api.del(`/tasks/${selectedTask.id}/`);
       await loadTasks();
       setSubtasks([]);
+      setMemberships([]);
     } catch (error) {
       setTaskEditError(getErrorMessage(error));
     }
@@ -312,6 +356,47 @@ function App() {
       await loadSubtasks(selectedTask.id);
     } catch (error) {
       setSubtaskError(getErrorMessage(error));
+    }
+  }
+
+  async function handleMembershipCreate(event) {
+    event.preventDefault();
+    if (!selectedTask || !membershipForm.user_id) return;
+    setMembershipBusy(true);
+    setMembershipError("");
+    try {
+      await api.post(`/tasks/${selectedTask.id}/memberships/`, {
+        user_id: Number(membershipForm.user_id),
+        role: membershipForm.role,
+      });
+      setMembershipForm(EMPTY_MEMBERSHIP_FORM);
+      await loadMemberships(selectedTask.id);
+    } catch (error) {
+      setMembershipError(getErrorMessage(error));
+    } finally {
+      setMembershipBusy(false);
+    }
+  }
+
+  async function handleMembershipRoleUpdate(userId, role) {
+    if (!selectedTask) return;
+    setMembershipError("");
+    try {
+      await api.patch(`/tasks/${selectedTask.id}/memberships/${userId}/`, { role });
+      await loadMemberships(selectedTask.id);
+    } catch (error) {
+      setMembershipError(getErrorMessage(error));
+    }
+  }
+
+  async function handleMembershipDelete(userId) {
+    if (!selectedTask) return;
+    setMembershipError("");
+    try {
+      await api.del(`/tasks/${selectedTask.id}/memberships/${userId}/`);
+      await loadMemberships(selectedTask.id);
+    } catch (error) {
+      setMembershipError(getErrorMessage(error));
     }
   }
 
@@ -376,6 +461,22 @@ function App() {
         onSubtaskStatusChange={handleSubtaskStatusChange}
         onSubtaskDelete={handleSubtaskDelete}
         onRefreshSubtasks={loadSubtasks}
+      />
+
+      <MembershipsPanel
+        selectedTask={selectedTask}
+        users={users}
+        memberships={memberships}
+        membershipsLoading={membershipsLoading}
+        membershipsError={membershipsError}
+        membershipForm={membershipForm}
+        setMembershipForm={setMembershipForm}
+        membershipBusy={membershipBusy}
+        membershipError={membershipError}
+        onMembershipCreate={handleMembershipCreate}
+        onMembershipRoleUpdate={handleMembershipRoleUpdate}
+        onMembershipDelete={handleMembershipDelete}
+        onRefreshMemberships={loadMemberships}
       />
     </main>
   );
