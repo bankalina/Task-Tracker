@@ -40,6 +40,30 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class LoginRequestSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+
+class TokenPairSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class RegisterResponseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    email = serializers.EmailField(allow_blank=True)
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class ProfileSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    email = serializers.EmailField(allow_blank=True)
+
+
 class UserTaskSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(

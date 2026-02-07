@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -8,8 +9,12 @@ from rest_framework.response import Response
 from api_app.models import Subtask, Task, UserTask
 from api_app.permissions import TaskMembershipPermission, TaskRolePermission
 from api_app.serializers import (
+    LoginRequestSerializer,
+    ProfileSerializer,
+    RegisterResponseSerializer,
     SubtaskSerializer,
     TaskSerializer,
+    TokenPairSerializer,
     UserRegisterSerializer,
     UserSerializer,
     UserTaskSerializer,
@@ -38,6 +43,17 @@ class UserDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Auth"],
+        request=UserRegisterSerializer,
+        responses={
+            201: RegisterResponseSerializer,
+            400: OpenApiResponse(description="Validation error"),
+        },
+        description="Register a new user and return JWT token pair.",
+    )
+)
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
@@ -52,6 +68,15 @@ class RegisterView(generics.CreateAPIView):
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 
+@extend_schema(
+    tags=["Auth"],
+    request=LoginRequestSerializer,
+    responses={
+        200: TokenPairSerializer,
+        401: OpenApiResponse(description="Invalid credentials"),
+    },
+    description="Authenticate with username/password and return JWT token pair.",
+)
 @api_view(["POST"])
 def login(request):
     username = request.data.get("username")
@@ -62,6 +87,14 @@ def login(request):
     return Response(tokens, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=["Auth"],
+    responses={
+        200: ProfileSerializer,
+        401: OpenApiResponse(description="Unauthorized"),
+    },
+    description="Return current authenticated user profile.",
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def profile(request):
@@ -149,4 +182,3 @@ class SubtaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         ensure_can_delete_subtask(subtask=instance, user=self.request.user)
         instance.delete()
-
