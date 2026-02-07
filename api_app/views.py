@@ -1,6 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -31,12 +36,116 @@ from api_app.services.task_service import create_task_for_user
 User = get_user_model()
 
 
+TASK_REQUEST_EXAMPLE = OpenApiExample(
+    "Create task request",
+    value={
+        "title": "Prepare sprint demo",
+        "description": "Collect updates from all modules.",
+        "deadline": "2026-03-01",
+        "priority": "High",
+        "status": "To do",
+    },
+    request_only=True,
+)
+
+TASK_RESPONSE_EXAMPLE = OpenApiExample(
+    "Task response",
+    value={
+        "id": 42,
+        "title": "Prepare sprint demo",
+        "description": "Collect updates from all modules.",
+        "created_at": "2026-02-07T18:10:00Z",
+        "updated_at": "2026-02-07T18:10:00Z",
+        "deadline": "2026-03-01",
+        "priority": "High",
+        "status": "To do",
+        "assigned_by": "kalina",
+    },
+    response_only=True,
+)
+
+TASK_LIST_RESPONSE_EXAMPLE = OpenApiExample(
+    "Task list response",
+    value={
+        "id": 42,
+        "title": "Prepare sprint demo",
+        "description": "Collect updates from all modules.",
+        "created_at": "2026-02-07T18:10:00Z",
+        "updated_at": "2026-02-07T18:10:00Z",
+        "deadline": "2026-03-01",
+        "priority": "High",
+        "status": "To do",
+        "assigned_by": "kalina",
+    },
+    response_only=True,
+)
+
+SUBTASK_REQUEST_EXAMPLE = OpenApiExample(
+    "Create subtask request",
+    value={
+        "title": "Prepare API changelog",
+        "description": "Summarize backend changes",
+        "status": "In progress",
+    },
+    request_only=True,
+)
+
+SUBTASK_RESPONSE_EXAMPLE = OpenApiExample(
+    "Subtask response",
+    value={
+        "id": 12,
+        "task": 42,
+        "title": "Prepare API changelog",
+        "description": "Summarize backend changes",
+        "status": "In progress",
+        "created_at": "2026-02-07T18:30:00Z",
+        "updated_at": "2026-02-07T18:40:00Z",
+    },
+    response_only=True,
+)
+
+MEMBERSHIP_REQUEST_EXAMPLE = OpenApiExample(
+    "Create membership request",
+    value={"user_id": 5, "role": "Assigned"},
+    request_only=True,
+)
+
+MEMBERSHIP_RESPONSE_EXAMPLE = OpenApiExample(
+    "Membership response",
+    value={
+        "id": 7,
+        "task": 42,
+        "user": {"id": 5, "username": "user4", "email": "user4@example.com"},
+        "role": "Assigned",
+    },
+    response_only=True,
+)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Users"],
+        responses={200: UserSerializer(many=True), 401: OpenApiResponse(description="Unauthorized")},
+        description="List all users (authenticated).",
+    )
+)
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Users"],
+        responses={
+            200: UserSerializer,
+            401: OpenApiResponse(description="Unauthorized"),
+            404: OpenApiResponse(description="User not found"),
+        },
+        description="Get single user details by id (authenticated).",
+    )
+)
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -105,6 +214,28 @@ def profile(request):
     )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Tasks"],
+        responses={
+            200: TaskSerializer(many=True),
+            401: OpenApiResponse(description="Unauthorized"),
+        },
+        description="List tasks where current user has membership.",
+        examples=[TASK_LIST_RESPONSE_EXAMPLE],
+    ),
+    post=extend_schema(
+        tags=["Tasks"],
+        request=TaskSerializer,
+        responses={
+            201: TaskSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Unauthorized"),
+        },
+        description="Create task and automatically create Owner membership for current user.",
+        examples=[TASK_REQUEST_EXAMPLE, TASK_RESPONSE_EXAMPLE],
+    ),
+)
 class TaskListCreateView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
@@ -116,6 +247,31 @@ class TaskListCreateView(generics.ListCreateAPIView):
         create_task_for_user(serializer=serializer, user=self.request.user)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Subtasks"],
+        responses={
+            200: SubtaskSerializer(many=True),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+        },
+        description="List subtasks for a task where current user has membership.",
+        examples=[SUBTASK_RESPONSE_EXAMPLE],
+    ),
+    post=extend_schema(
+        tags=["Subtasks"],
+        request=SubtaskSerializer,
+        responses={
+            201: SubtaskSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Task not found"),
+        },
+        description="Create subtask (Owner/Assigned only).",
+        examples=[SUBTASK_REQUEST_EXAMPLE, SUBTASK_RESPONSE_EXAMPLE],
+    ),
+)
 class TaskSubtaskListCreateView(generics.ListCreateAPIView):
     serializer_class = SubtaskSerializer
     permission_classes = [IsAuthenticated, TaskRolePermission]
@@ -132,6 +288,30 @@ class TaskSubtaskListCreateView(generics.ListCreateAPIView):
         create_subtask_for_task(serializer=serializer, task_id=task_id, user=self.request.user)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Memberships"],
+        responses={
+            200: UserTaskSerializer(many=True),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+        },
+        description="List memberships for a task.",
+        examples=[MEMBERSHIP_RESPONSE_EXAMPLE],
+    ),
+    post=extend_schema(
+        tags=["Memberships"],
+        request=UserTaskSerializer,
+        responses={
+            201: UserTaskSerializer,
+            400: OpenApiResponse(description="Validation error or duplicate membership"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+        },
+        description="Add user membership to task (Owner only).",
+        examples=[MEMBERSHIP_REQUEST_EXAMPLE, MEMBERSHIP_RESPONSE_EXAMPLE],
+    ),
+)
 class TaskMembershipListCreateView(generics.ListCreateAPIView):
     serializer_class = UserTaskSerializer
     permission_classes = [IsAuthenticated, TaskMembershipPermission]
@@ -145,6 +325,40 @@ class TaskMembershipListCreateView(generics.ListCreateAPIView):
         create_membership_for_task(serializer=serializer, task_id=task_id)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Memberships"],
+        responses={
+            200: UserTaskSerializer,
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Membership not found"),
+        },
+        description="Get membership details by task/user id.",
+    ),
+    patch=extend_schema(
+        tags=["Memberships"],
+        request=UserTaskSerializer,
+        responses={
+            200: UserTaskSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Membership not found"),
+        },
+        description="Update membership role (Owner only).",
+    ),
+    delete=extend_schema(
+        tags=["Memberships"],
+        responses={
+            204: OpenApiResponse(description="Membership deleted"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Membership not found"),
+        },
+        description="Remove membership (Owner only).",
+    ),
+)
 class TaskMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserTaskSerializer
     permission_classes = [IsAuthenticated, TaskMembershipPermission]
@@ -159,6 +373,42 @@ class TaskMembershipDetailView(generics.RetrieveUpdateDestroyAPIView):
         return get_object_or_404(UserTask, task_id=task_id, user_id=user_id)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Tasks"],
+        responses={
+            200: TaskSerializer,
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Task not found"),
+        },
+        description="Retrieve task details if user has membership.",
+        examples=[TASK_RESPONSE_EXAMPLE],
+    ),
+    patch=extend_schema(
+        tags=["Tasks"],
+        request=TaskSerializer,
+        responses={
+            200: TaskSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Task not found"),
+        },
+        description="Update task (Owner/Assigned).",
+        examples=[TASK_REQUEST_EXAMPLE, TASK_RESPONSE_EXAMPLE],
+    ),
+    delete=extend_schema(
+        tags=["Tasks"],
+        responses={
+            204: OpenApiResponse(description="Task deleted"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Task not found"),
+        },
+        description="Delete task (Owner only).",
+    ),
+)
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, TaskRolePermission]
@@ -167,6 +417,42 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Task.objects.filter(memberships__user=self.request.user)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=["Subtasks"],
+        responses={
+            200: SubtaskSerializer,
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Subtask not found"),
+        },
+        description="Retrieve subtask details if user has membership in parent task.",
+        examples=[SUBTASK_RESPONSE_EXAMPLE],
+    ),
+    patch=extend_schema(
+        tags=["Subtasks"],
+        request=SubtaskSerializer,
+        responses={
+            200: SubtaskSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Subtask not found"),
+        },
+        description="Update subtask (Owner/Assigned only).",
+        examples=[SUBTASK_REQUEST_EXAMPLE, SUBTASK_RESPONSE_EXAMPLE],
+    ),
+    delete=extend_schema(
+        tags=["Subtasks"],
+        responses={
+            204: OpenApiResponse(description="Subtask deleted"),
+            401: OpenApiResponse(description="Unauthorized"),
+            403: OpenApiResponse(description="Forbidden"),
+            404: OpenApiResponse(description="Subtask not found"),
+        },
+        description="Delete subtask (Owner only).",
+    ),
+)
 class SubtaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SubtaskSerializer
     permission_classes = [IsAuthenticated]
