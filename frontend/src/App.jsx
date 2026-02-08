@@ -47,13 +47,121 @@ function writeStoredTokens(tokens) {
   }
 }
 
+function formatFieldLabel(field) {
+  const labels = {
+    username: "Username",
+    email: "Email",
+    password: "Password",
+    non_field_errors: "Error",
+    detail: "Error",
+  };
+  return labels[field] || field;
+}
+
+function normalizeValidationMessage(field, message) {
+  const msg = String(message);
+  const lower = msg.toLowerCase();
+
+  if (field === "username" && lower.includes("already exists")) {
+    return "This username is already taken.";
+  }
+  if (field === "email" && lower.includes("already exists")) {
+    return "This email is already taken.";
+  }
+  if (field === "password" && lower.includes("too short")) {
+    return "Password is too short.";
+  }
+  if (field === "password" && lower.includes("too common")) {
+    return "Password is too common.";
+  }
+  if (field === "password" && lower.includes("entirely numeric")) {
+    return "Password cannot be only numbers.";
+  }
+  if (lower.includes("unable to log in") || lower.includes("invalid credentials")) {
+    return "Invalid username or password.";
+  }
+  if (lower.includes("invalid password")) {
+    return "Invalid password.";
+  }
+
+  return msg;
+}
+
+function extractValidationMessage(payload) {
+  if (!payload || typeof payload !== "object") return "";
+
+  for (const [field, value] of Object.entries(payload)) {
+    if (Array.isArray(value) && value.length) {
+      const first = value[0];
+      if (typeof first === "string") {
+        return `${formatFieldLabel(field)}: ${normalizeValidationMessage(field, first)}`;
+      }
+      if (first && typeof first === "object") {
+        const nested = extractValidationMessage(first);
+        if (nested) return nested;
+      }
+    }
+
+    if (typeof value === "string") {
+      return `${formatFieldLabel(field)}: ${normalizeValidationMessage(field, value)}`;
+    }
+
+    if (value && typeof value === "object") {
+      const nested = extractValidationMessage(value);
+      if (nested) return nested;
+    }
+  }
+
+  return "";
+}
+
+function getStatusMessage(status) {
+  if (status === 400) return "Could not save changes. Check the form data.";
+  if (status === 401) return "Session expired. Please sign in again.";
+  if (status === 403) return "You do not have permission for this action.";
+  if (status === 404) return "Requested data was not found.";
+  if (status === 409) return "Conflict detected. Refresh and try again.";
+  if (status >= 500) return "Server error. Please try again in a moment.";
+  if (status >= 400) return "Could not complete the request.";
+  return "";
+}
+
 function getErrorMessage(error) {
-  if (!error) return "Unknown error";
-  if (error.data?.detail) return String(error.data.detail);
-  if (error.data?.error) return String(error.data.error);
-  if (typeof error.data === "string") return error.data;
-  if (error.status) return `Request failed (${error.status})`;
-  return error.message || "Unknown error";
+  if (!error) return "Unexpected error. Please try again.";
+
+  const detail = error.data?.detail ? String(error.data.detail) : "";
+  const detailLower = detail.toLowerCase();
+
+  if (
+    detail.includes("token not valid for any token type") ||
+    detailLower.includes("token is invalid or expired")
+  ) {
+    return "Session expired. Please sign in again.";
+  }
+  if (detailLower.includes("authentication credentials were not provided")) {
+    return "Please sign in to continue.";
+  }
+  if (detailLower.includes("cannot change your own role")) {
+    return "You cannot change your own role in this task.";
+  }
+  if (detailLower.includes("cannot remove yourself")) {
+    return "You cannot remove yourself from this task.";
+  }
+
+  const validationMessage = extractValidationMessage(error.data);
+  if (validationMessage) return validationMessage;
+
+  if (typeof error.data === "string") {
+    const text = error.data.trim();
+    if (text.startsWith("<!DOCTYPE") || text.startsWith("<html")) {
+      return "Server error. Please try again in a moment.";
+    }
+    return "Could not complete the request.";
+  }
+
+  if (error.status) return getStatusMessage(error.status);
+  if (error.message) return "Could not complete the request.";
+  return "Unexpected error. Please try again.";
 }
 
 function App() {
@@ -90,10 +198,37 @@ function App() {
   const [membershipBusy, setMembershipBusy] = useState(false);
   const [membershipError, setMembershipError] = useState("");
 
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState("");
+  const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState("");
+
+  const clearSession = useCallback(() => {
+    const empty = { access: "", refresh: "" };
+    setTokens(empty);
+    writeStoredTokens(empty);
+    setProfile(null);
+    setTasks([]);
+    setSelectedTaskId(null);
+    setSubtasks([]);
+    setMemberships([]);
+    setUsers([]);
+    setDeleteAccountOpen(false);
+    setDeleteAccountPassword("");
+    setDeleteAccountError("");
+  }, []);
+
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) || null,
     [tasks, selectedTaskId],
   );
+
+  const currentTaskMembership = useMemo(() => {
+    if (!profile) return null;
+    return memberships.find((membership) => (membership.user?.id ?? membership.user_id) === profile.id) || null;
+  }, [memberships, profile]);
+
+  const canManageMemberships = currentTaskMembership?.role === "Owner";
 
   const api = useMemo(
     () =>
@@ -105,18 +240,9 @@ function App() {
           setTokens(merged);
           writeStoredTokens(merged);
         },
-        onAuthFail: () => {
-          const empty = { access: "", refresh: "" };
-          setTokens(empty);
-          writeStoredTokens(empty);
-          setProfile(null);
-          setTasks([]);
-          setSelectedTaskId(null);
-          setSubtasks([]);
-          setMemberships([]);
-        },
+        onAuthFail: clearSession,
       }),
-    [tokens.access, tokens.refresh],
+    [tokens.access, tokens.refresh, clearSession],
   );
 
   const loadTasks = useCallback(async () => {
@@ -196,6 +322,7 @@ function App() {
   useEffect(() => {
     if (!tokens.access) return;
     let mounted = true;
+
     (async () => {
       setBootLoading(true);
       setBootError("");
@@ -260,16 +387,33 @@ function App() {
         await api.post("/logout/", { refresh: tokens.refresh });
       }
     } catch {
-      // clear local tokens regardless of logout response
+      // Session will be cleared regardless of logout response
     } finally {
-      const empty = { access: "", refresh: "" };
-      setTokens(empty);
-      writeStoredTokens(empty);
-      setProfile(null);
-      setTasks([]);
-      setSelectedTaskId(null);
-      setSubtasks([]);
-      setMemberships([]);
+      clearSession();
+    }
+  }
+
+  async function handleDeleteAccount(event) {
+    event.preventDefault();
+    if (!deleteAccountPassword.trim()) {
+      setDeleteAccountError("Password is required.");
+      return;
+    }
+
+    const accepted = window.confirm("Delete your account permanently?");
+    if (!accepted) return;
+
+    setDeleteAccountBusy(true);
+    setDeleteAccountError("");
+    try {
+      await api.del("/profile/", { password: deleteAccountPassword });
+      clearSession();
+      setAuthMode("login");
+      setAuthError("");
+    } catch (error) {
+      setDeleteAccountError(getErrorMessage(error));
+    } finally {
+      setDeleteAccountBusy(false);
     }
   }
 
@@ -379,7 +523,7 @@ function App() {
   }
 
   async function handleMembershipRoleUpdate(userId, role) {
-    if (!selectedTask) return;
+    if (!selectedTask || !userId) return;
     setMembershipError("");
     try {
       await api.patch(`/tasks/${selectedTask.id}/memberships/${userId}/`, { role });
@@ -390,7 +534,7 @@ function App() {
   }
 
   async function handleMembershipDelete(userId) {
-    if (!selectedTask) return;
+    if (!selectedTask || !userId) return;
     setMembershipError("");
     try {
       await api.del(`/tasks/${selectedTask.id}/memberships/${userId}/`);
@@ -414,70 +558,148 @@ function App() {
     );
   }
 
+  const stats = [
+    { label: "Tasks", value: tasks.length },
+    { label: "Subtasks", value: subtasks.length },
+    { label: "Members", value: memberships.length },
+  ];
+
   return (
-    <main className="wrapper">
-      <h1>TaskTracker</h1>
-      <p>{profile ? `Logged in as ${profile.username}` : "Authenticated session active."}</p>
-      <p>
-        <button onClick={handleLogout}>Log out</button>
-      </p>
-      {bootError && <p>{bootError}</p>}
-      {bootLoading && <p>Loading workspace...</p>}
+    <main className="app-shell">
+      <header className="app-header">
+        <div>
+          <p className="kicker">TaskTracker Workspace</p>
+          <h1>Project Command Center</h1>
+          <p className="subtitle">
+            {profile ? `Logged in as ${profile.username}` : "Authenticated session active."}
+          </p>
+        </div>
+        <div className="header-actions">
+          <button type="button" className="ghost-button" onClick={handleLogout}>
+            Log out
+          </button>
+          <button
+            type="button"
+            className="danger-button subtle-danger"
+            onClick={() => {
+              setDeleteAccountOpen((prev) => !prev);
+              setDeleteAccountError("");
+            }}
+          >
+            Delete account
+          </button>
+        </div>
+      </header>
 
-      <TasksPanel
-        taskForm={taskForm}
-        setTaskForm={setTaskForm}
-        taskCreateBusy={taskCreateBusy}
-        taskCreateError={taskCreateError}
-        onTaskCreate={handleTaskCreate}
-        tasks={tasks}
-        tasksLoading={tasksLoading}
-        tasksError={tasksError}
-        selectedTaskId={selectedTaskId}
-        setSelectedTaskId={setSelectedTaskId}
-        onRefreshTasks={loadTasks}
-      />
+      {deleteAccountOpen && (
+        <section className="panel panel--danger">
+          <div className="panel-head">
+            <h2>Delete Account</h2>
+          </div>
+          <p className="feedback">This action is permanent. Confirm with your password.</p>
+          <form className="form-grid" onSubmit={handleDeleteAccount}>
+            <label className="field">
+              <span>Password</span>
+              <input
+                type="password"
+                value={deleteAccountPassword}
+                onChange={(event) => setDeleteAccountPassword(event.target.value)}
+                required
+              />
+            </label>
+            {deleteAccountError && <p className="feedback feedback--error">{deleteAccountError}</p>}
+            <div className="row two-col">
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => {
+                  setDeleteAccountOpen(false);
+                  setDeleteAccountPassword("");
+                  setDeleteAccountError("");
+                }}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="danger-button" disabled={deleteAccountBusy}>
+                {deleteAccountBusy ? "Deleting..." : "Confirm delete"}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
 
-      <TaskDetailsPanel
-        selectedTask={selectedTask}
-        taskEditForm={taskEditForm}
-        setTaskEditForm={setTaskEditForm}
-        taskEditBusy={taskEditBusy}
-        taskEditError={taskEditError}
-        onTaskUpdate={handleTaskUpdate}
-        onTaskDelete={handleTaskDelete}
-      />
+      <section className="stats-grid" aria-label="Workspace summary">
+        {stats.map((stat) => (
+          <article key={stat.label} className="stat-card">
+            <p className="stat-label">{stat.label}</p>
+            <p className="stat-value">{stat.value}</p>
+          </article>
+        ))}
+      </section>
 
-      <SubtasksPanel
-        selectedTask={selectedTask}
-        subtasks={subtasks}
-        subtasksLoading={subtasksLoading}
-        subtasksError={subtasksError}
-        subtaskForm={subtaskForm}
-        setSubtaskForm={setSubtaskForm}
-        subtaskBusy={subtaskBusy}
-        subtaskError={subtaskError}
-        onSubtaskCreate={handleSubtaskCreate}
-        onSubtaskStatusChange={handleSubtaskStatusChange}
-        onSubtaskDelete={handleSubtaskDelete}
-        onRefreshSubtasks={loadSubtasks}
-      />
+      {bootError && <p className="feedback feedback--error">{bootError}</p>}
+      {bootLoading && <p className="feedback">Loading workspace...</p>}
 
-      <MembershipsPanel
-        selectedTask={selectedTask}
-        users={users}
-        memberships={memberships}
-        membershipsLoading={membershipsLoading}
-        membershipsError={membershipsError}
-        membershipForm={membershipForm}
-        setMembershipForm={setMembershipForm}
-        membershipBusy={membershipBusy}
-        membershipError={membershipError}
-        onMembershipCreate={handleMembershipCreate}
-        onMembershipRoleUpdate={handleMembershipRoleUpdate}
-        onMembershipDelete={handleMembershipDelete}
-        onRefreshMemberships={loadMemberships}
-      />
+      <section className="dashboard-grid">
+        <div className="stack">
+          <TasksPanel
+            taskForm={taskForm}
+            setTaskForm={setTaskForm}
+            taskCreateBusy={taskCreateBusy}
+            taskCreateError={taskCreateError}
+            onTaskCreate={handleTaskCreate}
+            tasks={tasks}
+            tasksLoading={tasksLoading}
+            tasksError={tasksError}
+            selectedTaskId={selectedTaskId}
+            setSelectedTaskId={setSelectedTaskId}
+            onRefreshTasks={loadTasks}
+          />
+          <MembershipsPanel
+            selectedTask={selectedTask}
+            currentUserId={profile?.id ?? null}
+            canManageMemberships={canManageMemberships}
+            users={users}
+            memberships={memberships}
+            membershipsLoading={membershipsLoading}
+            membershipsError={membershipsError}
+            membershipForm={membershipForm}
+            setMembershipForm={setMembershipForm}
+            membershipBusy={membershipBusy}
+            membershipError={membershipError}
+            onMembershipCreate={handleMembershipCreate}
+            onMembershipRoleUpdate={handleMembershipRoleUpdate}
+            onMembershipDelete={handleMembershipDelete}
+            onRefreshMemberships={loadMemberships}
+          />
+        </div>
+
+        <div className="stack">
+          <TaskDetailsPanel
+            selectedTask={selectedTask}
+            taskEditForm={taskEditForm}
+            setTaskEditForm={setTaskEditForm}
+            taskEditBusy={taskEditBusy}
+            taskEditError={taskEditError}
+            onTaskUpdate={handleTaskUpdate}
+            onTaskDelete={handleTaskDelete}
+          />
+          <SubtasksPanel
+            selectedTask={selectedTask}
+            subtasks={subtasks}
+            subtasksLoading={subtasksLoading}
+            subtasksError={subtasksError}
+            subtaskForm={subtaskForm}
+            setSubtaskForm={setSubtaskForm}
+            subtaskBusy={subtaskBusy}
+            subtaskError={subtaskError}
+            onSubtaskCreate={handleSubtaskCreate}
+            onSubtaskStatusChange={handleSubtaskStatusChange}
+            onSubtaskDelete={handleSubtaskDelete}
+            onRefreshSubtasks={loadSubtasks}
+          />
+        </div>
+      </section>
     </main>
   );
 }

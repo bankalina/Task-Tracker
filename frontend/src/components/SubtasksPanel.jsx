@@ -1,4 +1,4 @@
-const STATUSES = ["To do", "In progress", "Done"];
+import { STATUSES, toKebab } from "../constants";
 
 function SubtasksPanel({
   selectedTask,
@@ -15,63 +15,85 @@ function SubtasksPanel({
   onRefreshSubtasks,
 }) {
   return (
-    <section>
-      <h2>Subtasks</h2>
-      {selectedTask && (
-        <p>
-          <button onClick={() => onRefreshSubtasks(selectedTask.id)}>Refresh subtasks</button>
-        </p>
-      )}
-      {subtasksError && <p>{subtasksError}</p>}
-      {subtasksLoading && <p>Loading subtasks...</p>}
+    <section className="panel panel--subtasks">
+      <div className="panel-head">
+        <h2>Subtasks</h2>
+        {selectedTask && (
+          <button type="button" onClick={() => onRefreshSubtasks(selectedTask.id)}>
+            Refresh subtasks
+          </button>
+        )}
+      </div>
+
+      {subtasksError && <p className="feedback feedback--error">{subtasksError}</p>}
+      {subtasksLoading && <p className="feedback">Loading subtasks...</p>}
 
       {selectedTask && (
-        <form onSubmit={onSubtaskCreate}>
-          <p>
+        <form className="form-grid" onSubmit={onSubtaskCreate}>
+          <label className="field">
+            <span>Subtask title</span>
             <input
-              placeholder="Subtask title"
+              placeholder="Prepare changelog"
               value={subtaskForm.title}
               onChange={(event) => setSubtaskForm((prev) => ({ ...prev, title: event.target.value }))}
               required
             />
-          </p>
-          <p>
-            <select
-              value={subtaskForm.status}
-              onChange={(event) => setSubtaskForm((prev) => ({ ...prev, status: event.target.value }))}
-            >
-              {STATUSES.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
-            </select>
-          </p>
-          <p>
-            <input
-              placeholder="Subtask description"
-              value={subtaskForm.description}
-              onChange={(event) =>
-                setSubtaskForm((prev) => ({ ...prev, description: event.target.value }))
-              }
-            />
-          </p>
-          {subtaskError && <p>{subtaskError}</p>}
+          </label>
+          <div className="row two-col">
+            <label className="field">
+              <span>Status</span>
+              <select
+                value={subtaskForm.status}
+                onChange={(event) => setSubtaskForm((prev) => ({ ...prev, status: event.target.value }))}
+              >
+                {STATUSES.map((status) => (
+                  <option key={status}>{status}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Description</span>
+              <input
+                placeholder="Short note"
+                value={subtaskForm.description}
+                onChange={(event) =>
+                  setSubtaskForm((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+          {subtaskError && <p className="feedback feedback--error">{subtaskError}</p>}
           <button disabled={subtaskBusy}>{subtaskBusy ? "Adding..." : "Add subtask"}</button>
         </form>
       )}
 
-      <ul>
+      <ul className="item-list">
         {subtasks.map((subtask) => (
           <li key={subtask.id}>
-            {subtask.title}{" "}
-            <select
-              value={subtask.status}
-              onChange={(event) => onSubtaskStatusChange(subtask.id, event.target.value)}
-            >
-              {STATUSES.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
-            </select>{" "}
-            <button onClick={() => onSubtaskDelete(subtask.id)}>Delete</button>
+            <div className="split-row">
+              <span className="item-title">{subtask.title}</span>
+              <span className={`badge badge--status-${toKebab(subtask.status)}`}>{subtask.status}</span>
+            </div>
+            <div className="row two-col">
+              <label className="field compact-field">
+                <span>Update status</span>
+                <select
+                  value={subtask.status}
+                  onChange={(event) => onSubtaskStatusChange(subtask.id, event.target.value)}
+                >
+                  {STATUSES.map((status) => (
+                    <option key={status}>{status}</option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="danger-button subtle-danger"
+                onClick={() => onSubtaskDelete(subtask.id)}
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
         {!subtasks.length && !subtasksLoading && <li>No subtasks yet.</li>}

@@ -1,5 +1,4 @@
-const PRIORITIES = ["High", "Medium", "Low"];
-const STATUSES = ["To do", "In progress", "Done"];
+import { PRIORITIES, STATUSES, toKebab } from "../constants";
 
 function TasksPanel({
   taskForm,
@@ -15,72 +14,84 @@ function TasksPanel({
   onRefreshTasks,
 }) {
   return (
-    <section>
-      <h2>Create task</h2>
-      <form onSubmit={onTaskCreate}>
-        <p>
+    <section className="panel panel--tasks">
+      <div className="panel-head">
+        <h2>Create Task</h2>
+      </div>
+      <form className="form-grid" onSubmit={onTaskCreate}>
+        <label className="field">
+          <span>Title</span>
           <input
-            placeholder="Title"
+            placeholder="Sprint demo preparation"
             value={taskForm.title}
             onChange={(event) => setTaskForm((prev) => ({ ...prev, title: event.target.value }))}
             required
           />
-        </p>
-        <p>
+        </label>
+        <label className="field">
+          <span>Deadline</span>
           <input
             type="date"
             value={taskForm.deadline}
             onChange={(event) => setTaskForm((prev) => ({ ...prev, deadline: event.target.value }))}
             required
           />
-        </p>
-        <p>
-          <select
-            value={taskForm.priority}
-            onChange={(event) => setTaskForm((prev) => ({ ...prev, priority: event.target.value }))}
-          >
-            {PRIORITIES.map((priority) => (
-              <option key={priority}>{priority}</option>
-            ))}
-          </select>
-        </p>
-        <p>
-          <select
-            value={taskForm.status}
-            onChange={(event) => setTaskForm((prev) => ({ ...prev, status: event.target.value }))}
-          >
-            {STATUSES.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-        </p>
-        <p>
+        </label>
+        <div className="row two-col">
+          <label className="field">
+            <span>Priority</span>
+            <select
+              value={taskForm.priority}
+              onChange={(event) => setTaskForm((prev) => ({ ...prev, priority: event.target.value }))}
+            >
+              {PRIORITIES.map((priority) => (
+                <option key={priority}>{priority}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Status</span>
+            <select
+              value={taskForm.status}
+              onChange={(event) => setTaskForm((prev) => ({ ...prev, status: event.target.value }))}
+            >
+              {STATUSES.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="field">
+          <span>Description</span>
           <textarea
-            placeholder="Description"
+            placeholder="Describe the goal, scope, and acceptance criteria."
             rows={3}
             value={taskForm.description}
             onChange={(event) => setTaskForm((prev) => ({ ...prev, description: event.target.value }))}
           />
-        </p>
-        {taskCreateError && <p>{taskCreateError}</p>}
+        </label>
+        {taskCreateError && <p className="feedback feedback--error">{taskCreateError}</p>}
         <button disabled={taskCreateBusy}>{taskCreateBusy ? "Creating..." : "Create task"}</button>
       </form>
 
-      <h2>Tasks</h2>
-      <p>
-        <button onClick={onRefreshTasks} disabled={tasksLoading}>
+      <div className="panel-head">
+        <h2>Tasks</h2>
+        <button type="button" onClick={onRefreshTasks} disabled={tasksLoading}>
           Refresh tasks
         </button>
-      </p>
-      {tasksError && <p>{tasksError}</p>}
-      {tasksLoading && <p>Loading tasks...</p>}
+      </div>
+      {tasksError && <p className="feedback feedback--error">{tasksError}</p>}
+      {tasksLoading && <p className="feedback">Loading tasks...</p>}
 
-      <ul>
+      <ul className="item-list">
         {tasks.map((task) => (
-          <li key={task.id}>
-            <button onClick={() => setSelectedTaskId(task.id)}>
-              {selectedTaskId === task.id ? "* " : ""}
-              {task.title} | {task.priority} | {task.status}
+          <li key={task.id} className={selectedTaskId === task.id ? "is-selected" : ""}>
+            <button type="button" className="task-item" onClick={() => setSelectedTaskId(task.id)}>
+              <span className="task-item__title">{task.title}</span>
+              <span className="task-item__meta">
+                <span className={`badge badge--priority-${toKebab(task.priority)}`}>{task.priority}</span>
+                <span className={`badge badge--status-${toKebab(task.status)}`}>{task.status}</span>
+              </span>
             </button>
           </li>
         ))}

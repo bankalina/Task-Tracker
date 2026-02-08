@@ -3,14 +3,16 @@
 :root {
   --font-display: "Fraunces", serif;
   --font-ui: "Space Grotesk", sans-serif;
-  --ink: #1b2a3f;
-  --ink-soft: #40516d;
-  --line: rgba(36, 58, 97, 0.2);
+  --ink: #1d2b41;
+  --ink-soft: #4b5c77;
+  --line: rgba(41, 66, 108, 0.2);
   --accent: #c85a2f;
   --accent-soft: rgba(200, 90, 47, 0.17);
-  --bg-shell: linear-gradient(155deg, #f9f5ec 0%, #edf4ff 56%, #f8fcff 100%);
-  --panel: rgba(255, 255, 255, 0.9);
+  --danger: #a72e2b;
+  --bg-shell: linear-gradient(155deg, #f9f2e7 0%, #eef5ff 52%, #f8fcff 100%);
+  --panel: rgba(255, 255, 255, 0.92);
   --shadow: 0 12px 30px rgba(26, 42, 68, 0.1);
+  --shadow-soft: 0 8px 16px rgba(19, 33, 54, 0.08);
 }
 
 * {
@@ -28,8 +30,10 @@ body {
   font-family: var(--font-ui);
   color: var(--ink);
   background:
-    radial-gradient(circle at 14% 5%, rgba(242, 174, 92, 0.34), transparent 38%),
-    radial-gradient(circle at 87% 15%, rgba(144, 188, 240, 0.36), transparent 35%),
+    radial-gradient(circle at 14% 5%, rgba(242, 174, 92, 0.3), transparent 38%),
+    radial-gradient(circle at 87% 15%, rgba(144, 188, 240, 0.33), transparent 35%),
+    radial-gradient(circle at 80% 80%, rgba(255, 215, 173, 0.22), transparent 40%),
     var(--bg-shell);
   background-attachment: fixed;
+  line-height: 1.42;
 }
