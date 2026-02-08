@@ -91,6 +91,11 @@ export function createApi({
       if (onAuthFail) onAuthFail();
     }
 
+    // Token is still invalid after a refresh attempt; force sign-out.
+    if (response.status === 401 && !retry && onAuthFail) {
+      onAuthFail();
+    }
+
     const data = await readJson(response);
     if (!response.ok) {
       const error = new Error("Request failed");
@@ -108,6 +113,6 @@ export function createApi({
     post: (path, body) => request(path, { method: "POST", body }),
     patch: (path, body) => request(path, { method: "PATCH", body }),
     put: (path, body) => request(path, { method: "PUT", body }),
-    del: (path) => request(path, { method: "DELETE" }),
+    del: (path, body) => request(path, { method: "DELETE", body }),
   };
 }
